@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { Home, GraduationCap, TrendingUp, User, Sprout, Trophy, Settings, HelpCircle, Newspaper } from "lucide-react";
-import growttLogo from "@assets/Growtt_Icon_Primary_1770990881558.jpg";
+// import growttLogo/;
 import {
   Sidebar,
   SidebarContent,
@@ -12,8 +12,8 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarFooter,
-} from "@/components/ui/sidebar";
-import { Badge } from "@/components/ui/badge";
+} from "./ui/sidebar";
+import { Badge } from "./ui/badge";
 
 const mainNavItems = [
   { id: "home", label: "Home", icon: Home, path: "/" },
@@ -41,7 +41,7 @@ export function AppSidebar({ currentPage, userSeeds = 120 }: AppSidebarProps) {
     <Sidebar className="border-r">
       <SidebarHeader className="p-4 border-b">
         <div className="flex items-center gap-3">
-          <img src={growttLogo} alt="Growtt" className="w-10 h-10 rounded-full object-cover" />
+          <img src="/src/assets/Growtt_Icon_Primary_1770990881558.jpg" alt="Growtt" className="w-10 h-10 rounded-full object-cover" />
           <div>
             <h1 className="font-bold text-lg">Growtt</h1>
             <p className="text-xs text-muted-foreground">Learn First, Invest Smart</p>
