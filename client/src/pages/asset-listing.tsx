@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { BottomNav } from "@/components/bottom-nav";
+import { Card, CardContent } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import { ThemeToggle } from "../components/theme-toggle";
+import { BottomNav } from "../components/bottom-nav";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "../components/ui/sheet";
 import {
   ArrowLeft,
   TrendingUp,

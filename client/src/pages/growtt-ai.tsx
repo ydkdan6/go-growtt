@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { BottomNav } from "@/components/bottom-nav";
+import { Card, CardContent } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import { ThemeToggle } from "../components/theme-toggle";
+import { BottomNav } from "../components/bottom-nav";
 import {
   ArrowLeft,
   Sparkles,
@@ -16,7 +16,7 @@ import {
   Bot,
   User,
 } from "lucide-react";
-import growttLogo from "@assets/Growtt_Icon_Primary_1770990881558.jpg";
+// import growttLogo from "@assets/Growtt_Icon_Primary_1770990881558.jpg";
 
 interface Message {
   id: string;
@@ -96,7 +96,7 @@ export default function GrowttAI() {
         {messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-blue-500/20 flex items-center justify-center mb-5">
-              <img src={growttLogo} alt="Growtt" className="w-14 h-14 rounded-full object-cover" />
+              <img src="/src/assets/Growtt_Icon_Primary_1770990881558.jpg" alt="Growtt" className="w-14 h-14 rounded-full object-cover" />
             </div>
             <h2 className="text-xl font-bold mb-2">Growtt AI</h2>
             <p className="text-sm text-muted-foreground mb-6 max-w-xs">

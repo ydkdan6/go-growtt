@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Card, CardContent } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Badge } from "../components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components/ui/dialog";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
-import { Progress } from "@/components/ui/progress";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { BottomNav } from "@/components/bottom-nav";
+} from "../components/ui/sheet";
+import { Progress } from "../components/ui/progress";
+import { ThemeToggle } from "../components/theme-toggle";
+import { BottomNav } from "../components/bottom-nav";
 import { 
   Wallet, 
   Plus, 
@@ -41,9 +41,9 @@ import {
   XCircle,
   Award
 } from "lucide-react";
-import growttLogo from "@assets/Growtt_Icon_Primary_1770990881558.jpg";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+// import growttLogo from "@assets/Growtt_Icon_Primary_1770990881558.jpg";
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
+import { Label } from "../components/ui/label";
 
 const tipMessages = [
   { icon: Lightbulb, text: "Confused how to start? Tap on a module to learn and unlock access to real investing" },
@@ -220,7 +220,7 @@ export default function Home() {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
         <div className="max-w-lg lg:max-w-4xl xl:max-w-6xl mx-auto px-4 lg:px-6 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <img src={growttLogo} alt="Growtt" className="w-8 h-8 rounded-full object-cover" />
+            <img src="/src/assets/Growtt_Icon_Primary_1770990881558.jpg" alt="Growtt" className="w-8 h-8 rounded-full object-cover" />
             <div>
               <p className="text-xs text-muted-foreground">Welcome back</p>
               <p className="font-semibold text-sm">Guest User</p>
@@ -364,7 +364,7 @@ export default function Home() {
         <div className="flex gap-3 lg:flex-col lg:justify-center">
           <Button
             variant="outline"
-            className="flex-1 h-auto py-3 lg:py-4 flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-start bg-growtt-ai border-0 text-white hover:bg-growtt-ai/90"
+            className="flex-1 h-auto py-3 lg:py-4 flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-start bg-primary border-0 text-white hover:bg-growtt-ai/90"
             onClick={() => setLocation("/growtt-ai")}
             data-testid="button-growtt-ai"
           >
@@ -374,7 +374,7 @@ export default function Home() {
           
           <Button
             variant="outline"
-            className="flex-1 h-auto py-3 lg:py-4 flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-start bg-growtt-portfolio border-0 text-white hover:bg-growtt-portfolio/90"
+            className="flex-1 h-auto py-3 lg:py-4 flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-start bg-primary border-0 text-white hover:bg-growtt-portfolio/90"
             onClick={() => navigateToCourse("portfolio")}
             data-testid="button-portfolio"
           >

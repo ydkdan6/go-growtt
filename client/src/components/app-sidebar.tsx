@@ -16,7 +16,7 @@ import {
 import { Badge } from "./ui/badge";
 
 const mainNavItems = [
-  { id: "home", label: "Home", icon: Home, path: "/" },
+  { id: "home", label: "Home", icon: Home, path: "/dashboard" },
   { id: "learn", label: "Learn", icon: GraduationCap, path: "/learn" },
   { id: "invest", label: "Invest", icon: TrendingUp, path: "/invest" },
   { id: "leaderboard", label: "Leaderboard", icon: Trophy, path: "/leaderboard" },
