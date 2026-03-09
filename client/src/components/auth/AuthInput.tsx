@@ -33,7 +33,7 @@ const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgba(3,7,18,0.2)]"
+              className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-[rgba(3,7,18,0.2)]"
             >
               {showPassword ? (
                 <Eye className="w-6 h-6" />

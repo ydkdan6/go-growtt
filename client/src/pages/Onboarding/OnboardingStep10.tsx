@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import AppHeader from "../../components/AppHeader";
+import { useOnboardingContext } from "@/context/OnboardingContext";
 
 export default function OnboardingStep10() {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState<string | null>(null);
+  const { saveStep, answers } = useOnboardingContext();
+  const [, navigate] = useLocation();
+  const [selected, setSelected] = useState<string>(
+  answers.preferred_learning_content ?? ""   // ← each step uses its own field name
+);
 
   const options = [
     "Short Videos",
@@ -14,10 +18,10 @@ export default function OnboardingStep10() {
   ];
 
   const handleNext = () => {
-    if (selected) {
-      navigate("/onboarding/step11");
-    }
-  };
+  if (!selected) return;
+  saveStep({ preferred_learning_content: selected }); // ← each step uses its own field
+  navigate("/onboarding/step11");
+};
 
   const handleBack = () => {
     navigate("/onboarding/step9");

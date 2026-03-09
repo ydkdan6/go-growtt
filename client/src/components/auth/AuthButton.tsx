@@ -12,7 +12,7 @@ const AuthButton = forwardRef<HTMLButtonElement, AuthButtonProps>(
       <button
         ref={ref}
         className={cn(
-          "px-6 py-2.5 rounded-lg text-base leading-[150%] font-normal transition-all",
+          "px-6 py-2.5 rounded-lg text-base leading-[150%] font-normal transition-all cursor-pointer",
           "focus:outline-none focus:ring-2 focus:ring-offset-2",
           variant === "primary"
             ? "bg-[#006666] text-brand-light border border-[rgba(255,255,255,0.2)] hover:bg-[#006666]"

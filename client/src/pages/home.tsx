@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { useBooks } from "@/hooks/auth/useBooks";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components/ui/dialog";
 import {
   Sheet,
@@ -153,11 +154,11 @@ const investmentCategories = [
   },
 ];
 
-const featuredBooks = [
-  { title: "The Intelligent Investor", author: "Benjamin Graham", seeds: 50 },
-  { title: "Rich Dad Poor Dad", author: "Robert Kiyosaki", seeds: 40 },
-  { title: "A Random Walk Down Wall Street", author: "Burton Malkiel", seeds: 60 },
-];
+// const featuredBooks = [
+//   { title: "The Intelligent Investor", author: "Benjamin Graham", seeds: 50 },
+//   { title: "Rich Dad Poor Dad", author: "Robert Kiyosaki", seeds: 40 },
+//   { title: "A Random Walk Down Wall Street", author: "Burton Malkiel", seeds: 60 },
+// ];
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -168,6 +169,7 @@ export default function Home() {
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
   const [isProfessional, setIsProfessional] = useState(false);
   const [showSeedsDashboard, setShowSeedsDashboard] = useState(false);
+  const { data: books = [], isLoading: booksLoading } = useBooks();
   
   const [activeWalletCard, setActiveWalletCard] = useState(0);
   const walletScrollRef = useRef<HTMLDivElement>(null);
@@ -223,7 +225,7 @@ export default function Home() {
             <img src="/src/assets/Growtt_Icon_Primary_1770990881558.jpg" alt="Growtt" className="w-8 h-8 rounded-full object-cover" />
             <div>
               <p className="text-xs text-muted-foreground">Welcome back</p>
-              <p className="font-semibold text-sm">Guest User</p>
+              {/* <p className="font-semibold text-sm"></p> */}
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -455,38 +457,69 @@ export default function Home() {
 
         {/* Books Section */}
         <section>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-primary" />
-              Books
-            </h3>
-            <Button variant="ghost" size="sm" className="text-muted-foreground text-xs gap-1" onClick={() => setLocation("/books")} data-testid="button-view-all-books">
-              View All
-              <ChevronRight className="w-3 h-3" />
-            </Button>
-          </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-            {featuredBooks.map((book, index) => (
-              <Card 
-                key={index}
-                className="min-w-[180px] border hover-elevate cursor-pointer flex-shrink-0"
-                data-testid={`book-${index}`}
-              >
-                <CardContent className="p-4">
-                  <div className="w-full h-20 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3">
-                    <BookOpen className="w-7 h-7 text-primary/50" />
-                  </div>
-                  <p className="font-medium text-sm line-clamp-1">{book.title}</p>
-                  <p className="text-xs text-muted-foreground mb-2">{book.author}</p>
-                  <Badge variant="secondary" className="gap-1 text-xs">
-                    <Sprout className="w-3 h-3" />
-                    {book.seeds} seeds
-                  </Badge>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+  <div className="flex items-center justify-between mb-3">
+    <h3 className="font-semibold flex items-center gap-2">
+      <BookOpen className="w-4 h-4 text-primary" />
+      Books
+    </h3>
+    <Button
+      variant="ghost"
+      size="sm"
+      className="text-muted-foreground text-xs gap-1"
+      onClick={() => setLocation("/books")}
+      data-testid="button-view-all-books"
+    >
+      View All
+      <ChevronRight className="w-3 h-3" />
+    </Button>
+  </div>
+
+  <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+    {booksLoading ? (
+      // ── Skeleton shimmer while loading ──
+      Array.from({ length: 3 }).map((_, i) => (
+        <div
+          key={i}
+          className="min-w-[180px] flex-shrink-0 rounded-xl border bg-card p-4 space-y-3"
+        >
+          <div className="w-full h-20 rounded-lg bg-muted animate-pulse" />
+          <div className="h-3.5 bg-muted animate-pulse rounded w-3/4" />
+          <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+          <div className="h-5 bg-muted animate-pulse rounded w-1/3" />
+        </div>
+      ))
+    ) : books.length === 0 ? (
+      <p className="text-sm text-muted-foreground py-4">No books available yet.</p>
+    ) : (
+      // ── Show first 5 books from API ──
+      books.slice(0, 5).map((book) => (
+        <Card
+          key={book.id}
+          className="min-w-[180px] border hover-elevate cursor-pointer flex-shrink-0"
+          onClick={() => setLocation("/books")}
+          data-testid={`book-${book.id}`}
+        >
+          <CardContent className="p-4">
+            <div className="w-full h-20 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3 relative">
+              <BookOpen className="w-7 h-7 text-primary/50" />
+              {book.locked && (
+                <div className="absolute inset-0 rounded-lg bg-background/60 flex items-center justify-center">
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                </div>
+              )}
+            </div>
+            <p className="font-medium text-sm line-clamp-1">{book.title}</p>
+            <p className="text-xs text-muted-foreground mb-2">{book.author}</p>
+            <Badge variant="secondary" className="gap-1 text-xs">
+              <Sprout className="w-3 h-3" />
+              {book.seeds} seeds
+            </Badge>
+          </CardContent>
+        </Card>
+      ))
+    )}
+  </div>
+</section>
 
         {/* Referrals Section */}
         <section>

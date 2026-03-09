@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import AppHeader from "../../components/AppHeader";
+import { useOnboardingContext } from "@/context/OnboardingContext";
 
 export default function OnboardingStep11() {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState<string | null>(null);
+  const { saveStep, answers } = useOnboardingContext();
+  const [, navigate] = useLocation();
+  const [selected, setSelected] = useState<string>(
+  answers.liquidity_preference ?? ""   // ← each step uses its own field name
+);
 
   const options = [
     "Very Important",
@@ -13,10 +17,10 @@ export default function OnboardingStep11() {
   ];
 
   const handleNext = () => {
-    if (selected) {
-      navigate("/onboarding/step12");
-    }
-  };
+  if (!selected) return;
+  saveStep({ liquidity_preference: selected }); // ← each step uses its own field
+  navigate("/onboarding/step12");
+};
 
   const handleBack = () => {
     navigate("/onboarding/step10");

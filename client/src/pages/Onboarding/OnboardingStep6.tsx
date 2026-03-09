@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import AppHeader from "../../components/AppHeader";
+import { useOnboardingContext } from "@/context/OnboardingContext";
 
 export default function OnboardingStep6() {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState<string | null>(null);
+  const { saveStep, answers } = useOnboardingContext();
+  const [, navigate] = useLocation();
+  const [selected, setSelected] = useState<string>(
+  answers.typical_investment_ticket_size ?? ""   // ← each step uses its own field name
+);
 
   const options = [
     "2M - 10M",
@@ -13,10 +17,10 @@ export default function OnboardingStep6() {
   ];
 
   const handleNext = () => {
-    if (selected) {
-      navigate("/onboarding/step7");
-    }
-  };
+  if (!selected) return;
+  saveStep({ typical_investment_ticket_size: selected }); // ← each step uses its own field
+  navigate("/onboarding/step7");
+};
 
   const handleBack = () => {
     navigate("/onboarding/step5");

@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import AppHeader from "../../components/AppHeader";
+import { useOnboardingContext } from "@/context/OnboardingContext";
 
 export default function OnboardingStep4() {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState<string | null>(null);
+  const { saveStep, answers } = useOnboardingContext();
+  const [, navigate] = useLocation();
+  const [selected, setSelected] = useState<string>(
+  answers.investment_risk_response ?? ""   // ← each step uses its own field name
+);
 
   const options = [
     "Withdraw",
@@ -13,10 +17,10 @@ export default function OnboardingStep4() {
   ];
 
   const handleNext = () => {
-    if (selected) {
-      navigate("/onboarding/step5");
-    }
-  };
+  if (!selected) return;
+  saveStep({ investment_risk_response: selected }); // ← each step uses its own field
+  navigate("/onboarding/step5");
+};
 
   const handleBack = () => {
     navigate("/onboarding/step3");

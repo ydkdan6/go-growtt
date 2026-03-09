@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import AppHeader from "../../components/AppHeader";
+import { useOnboardingContext } from "@/context/OnboardingContext";
 
 export default function OnboardingStep8() {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState<string | null>(null);
+  const { saveStep, answers } = useOnboardingContext();
+  const [, navigate] = useLocation();
+  const [selected, setSelected] = useState<string>(
+  answers.current_investment_method ?? ""   // ← each step uses its own field name
+);
 
   const options = [
     "Bank Savings",
@@ -15,10 +19,10 @@ export default function OnboardingStep8() {
   ];
 
   const handleNext = () => {
-    if (selected) {
-      navigate("/onboarding/step9");
-    }
-  };
+  if (!selected) return;
+  saveStep({ current_investment_method: selected }); // ← each step uses its own field
+  navigate("/onboarding/step9");
+};
 
   const handleBack = () => {
     navigate("/onboarding/step7");

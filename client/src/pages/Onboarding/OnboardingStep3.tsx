@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import AppHeader from "../../components/AppHeader";
+import { useOnboardingContext } from "@/context/OnboardingContext";
 
 export default function OnboardingStep3() {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState<string | null>(null);
+  const { saveStep, answers } = useOnboardingContext();
+  const [, navigate] = useLocation();
+  const [selected, setSelected] = useState<string>(
+  answers.investment_strategy ?? ""   
+);
 
   const options = [
     "Capital Growth",
@@ -15,10 +19,10 @@ export default function OnboardingStep3() {
   ];
 
   const handleNext = () => {
-    if (selected) {
-      navigate("/onboarding/step4");
-    }
-  };
+  if (!selected) return;
+  saveStep({ investment_strategy: selected }); // ← each step uses its own field
+  navigate("/onboarding/step4");
+};
 
   const handleBack = () => {
     navigate("/onboarding/step2");

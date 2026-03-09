@@ -1,22 +1,30 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter"; //  wouter
 import AppHeader from "../../components/AppHeader";
-import AuthButton from "../../components/auth/AuthButton";
+import { useOnboardingContext } from "@/context/OnboardingContext"; //  context
 
 export default function OnboardingStep1() {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState<string | null>(null);
+  const [, navigate] = useLocation();
+  const { saveStep, answers } = useOnboardingContext();
+
+  // Pre-select if user came back to this step
+  const [selected, setSelected] = useState<string>(
+    answers.financial_literacy_level ?? ""
+  );
 
   const options = [
     "I have zero knowledge about investments",
     "I have little knowledge on financial planning",
-    "I'm an expert in investing"
+    "I'm an expert in investing",
   ];
 
   const handleNext = () => {
-    if (selected) {
-      navigate("/onboarding/step2");
-    }
+    if (!selected) return;
+
+    //  Save this step's answer into shared context — no API call yet
+    saveStep({ financial_literacy_level: selected });
+
+    navigate("/Onboarding/step2");
   };
 
   return (
@@ -26,10 +34,10 @@ export default function OnboardingStep1() {
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-6 md:p-8">
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-3">
-              <div className="h-2 bg-[#D1E8E8] rounded-full overflow-hidden">
-                <div className="h-full w-[60px] bg-[#1AE5CF] rounded-full"></div>
-              </div>
+
+            {/* Progress bar — step 1 of 13 */}
+            <div className="h-2 bg-[#D1E8E8] rounded-full overflow-hidden">
+              <div className="h-full rounded-full bg-[#1AE5CF] transition-all" style={{ width: "7.7%" }} />
             </div>
 
             <div className="text-center">
@@ -38,7 +46,7 @@ export default function OnboardingStep1() {
               </h2>
             </div>
 
-            <div className="flex flex-col md:flex-col-2 gap-3">
+            <div className="flex flex-col gap-3">
               {options.map((option) => (
                 <button
                   key={option}
@@ -63,6 +71,7 @@ export default function OnboardingStep1() {
                 Next
               </button>
             </div>
+
           </div>
         </div>
       </main>

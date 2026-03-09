@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import AppHeader from "../../components/AppHeader";
 import AuthButton from "../../components/auth/AuthButton";
 
 export default function OnboardingInitial() {
-  const navigate = useNavigate();
+  const [, navigate ] = useLocation();
   const [selectedMode, setSelectedMode] = useState<string | null>(null);
 
   useEffect(() => {
@@ -50,13 +50,13 @@ export default function OnboardingInitial() {
               >
                 Continue as Beginner
               </AuthButton>
-              <button
+              {/* <button
                 onClick={() => handleModeContinue("professional")}
                 disabled={selectedMode !== null}
                 className="h-11 border-2 border-[rgba(0,128,128,0.2)] text-[#030712] rounded-lg font-medium transition-all hover:border-[#008080] disabled:opacity-50 text-base"
               >
                 Start as Professional
-              </button>
+              </button> */}
             </div>
 
             {/* Info Text */}

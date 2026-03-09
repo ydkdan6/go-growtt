@@ -1,10 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 import AppHeader from "../../components/AppHeader";
+import { useOnboardingContext } from "@/context/OnboardingContext";
 
 export default function OnboardingStep13() {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState<string | null>(null);
+  const { saveStep, answers } = useOnboardingContext();
+  const [, navigate] = useLocation();
+  const [selected, setSelected] = useState<string>(
+  answers.age_group ?? ""   //  each step uses its own field name
+);
 
   const options = [
     "<25",
@@ -14,10 +18,10 @@ export default function OnboardingStep13() {
   ];
 
   const handleNext = () => {
-    if (selected) {
-      navigate("/dashboard");
-    }
-  };
+  if (!selected) return;
+  saveStep({ age_group: selected }); // ← each step uses its own field
+  navigate("/dashboard");
+};
 
   const handleBack = () => {
     navigate("/onboarding/step12");
