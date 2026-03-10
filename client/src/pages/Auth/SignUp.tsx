@@ -268,15 +268,14 @@ export default function SignUp() {
               </button>
             </div>
             <p className="text-brand-dark text-base leading-[150%]">
-              I have read, understood, and agree to and all other terms, disclosures
-              and disclaimers applicable to me as referenced in the Customer Agreement.
+              I have read, understood, and agree to and all other terms & Customer Agreement.
             </p>
           </div>
 
           <AuthButton
             variant="primary"
             fullWidth
-            className="mb-12 text-white"
+            className="text-white"
             type="submit"
             disabled={!canSubmit}
           >
