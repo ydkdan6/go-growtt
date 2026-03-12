@@ -22,8 +22,8 @@ import {
   Lock,
   AlertCircle,
 } from "lucide-react";
-import { useBooks } from "@/hooks/auth/useBooks";
-import type { Book } from "@/types/auth.types";
+import { useBooks } from "@/hooks/general/useBooks";
+import type { Book } from "@/types/general.types";
 
 // ─── Skeleton card for loading state ─────────────────────────────────────────
 function BookCardSkeleton() {

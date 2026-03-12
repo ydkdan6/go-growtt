@@ -6,7 +6,7 @@ import AuthInput from "./../../components/auth/AuthInput";
 import AuthButton from "./../../components/auth/AuthButton";
 import { Check, X, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useSignUpWithParsedError } from "@/hooks/auth/useSignUp";
+import { useSignUpWithParsedError } from "@/hooks/general/useSignUp";
 import { getErrorMessage } from "@/utils/getErrorMessage";
 
 // ─── Password criteria definitions ───────────────────────────────────────────

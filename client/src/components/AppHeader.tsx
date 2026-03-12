@@ -1,5 +1,5 @@
 import { Bell } from "lucide-react";
-import { useUserDetail } from "@/hooks/auth/useUserDetails";
+import { useUserDetail } from "@/hooks/general/useUserDetails";
 
 // ─── Skeleton shimmer for loading state 
 function Skeleton({ className }: { className?: string }) {

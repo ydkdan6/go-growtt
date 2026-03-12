@@ -1,5 +1,7 @@
 import { apiClient } from "../lib/axios";
-import { ApiBook } from "../types/auth.types";
+import { ApiBook } from "../types/general.types";
+import { ApiLesson } from "../types/general.types";
+import { ApiModule } from "../types/general.types";
 import type {
   SignUpPayload,
   SignUpResponse,
@@ -12,7 +14,7 @@ import type {
   OnboardingStepPayload,
   OnboardingResponse,
   UserDetail,
-} from "../types/auth.types";
+} from "../types/general.types";
 
 const AUTH_ENDPOINTS = {
   SIGN_UP: "/custom-user/sign-up/",
@@ -122,5 +124,18 @@ export const getUserDetailApi = async (
 // Get Books (GET)
 export const getBooksApi = async (): Promise<ApiBook[]> => {
   const { data } = await apiClient.get<ApiBook[]>("/book/book/");
+  return data;
+};
+
+// Get Learning Content (GET)
+export const getLessonsApi = async (): Promise<ApiLesson[]> => {
+  const { data } = await apiClient.get<ApiLesson[]>("/learn/lessons/");
+  return data;
+};
+
+//Get Lessons Modules
+
+export const getModulesApi = async (): Promise<ApiModule[]> => {
+  const { data } = await apiClient.get<ApiModule[]>("/learn/modules/");
   return data;
 };

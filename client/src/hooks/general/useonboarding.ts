@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { onboardUserApi } from "../../api/auth.api";
+import { onboardUserApi } from "../../api/general.api";
 import { parseApiError } from "../../utils/parseApiError";
 import { onboardingKeys, authKeys } from "@/config/queryKeys";
-import type { OnboardingStepPayload, OnboardingResponse } from "../../types/auth.types";
+import type { OnboardingStepPayload, OnboardingResponse } from "../../types/general.types";
 
 interface UseOnboardingOptions {
   userId: string | number;

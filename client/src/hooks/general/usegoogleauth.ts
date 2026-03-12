@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { googleAuthApi } from "../../api/auth.api";
+import { googleAuthApi } from "../../api/general.api";
 import { parseApiError } from "../../utils/parseApiError";
 import { authKeys } from "@/config/queryKeys";
-import type { GoogleAuthPayload, GoogleAuthResponse } from "../../types/auth.types";
+import type { GoogleAuthPayload, GoogleAuthResponse } from "../../types/general.types";
 
 interface UseGoogleAuthOptions {
   onSuccess?: (data: GoogleAuthResponse) => void;

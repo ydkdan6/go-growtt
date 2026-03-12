@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { getUserDetailApi } from "../../api/auth.api";
+import { getUserDetailApi } from "../../api/general.api";
 import { userKeys } from "@/config/queryKeys";
-import type { UserDetail } from "../../types/auth.types";
+import type { UserDetail } from "../../types/general.types";
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 export const getStoredUserId = (): string =>

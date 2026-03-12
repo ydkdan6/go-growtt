@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import { signUpApi } from "../../api/auth.api";
+import { signUpApi } from "../../api/general.api";
 import { parseApiError } from "../../utils/parseApiError";
-import type { SignUpPayload, SignUpResponse } from "../../types/auth.types";
+import type { SignUpPayload, SignUpResponse } from "../../types/general.types";
 
 interface UseSignUpOptions {
   onSuccess?: (data: SignUpResponse) => void;

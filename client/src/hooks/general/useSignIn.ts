@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { signInApi } from "../../api/auth.api";
+import { signInApi } from "../../api/general.api";
 import { parseApiError } from "../../utils/parseApiError";
 import { authKeys } from "@/config/queryKeys";
-import type { SignInPayload, SignInResponse } from "../../types/auth.types";
+import type { SignInPayload, SignInResponse } from "../../types/general.types";
 
 interface UseSignInOptions {
   onSuccess?: (data: SignInResponse) => void;

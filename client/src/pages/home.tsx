@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { useBooks } from "@/hooks/auth/useBooks";
+import { useBooks } from "@/hooks/general/useBooks";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components/ui/dialog";
 import {
   Sheet,
@@ -251,16 +251,16 @@ export default function Home() {
           >
             Beginner
           </Badge>
-          <span className="text-muted-foreground text-sm">|</span>
+          {/* // <span className="text-muted-foreground text-sm">|</span>
           <Badge 
-            variant={isProfessional ? "secondary" : "outline"}
-            className={`px-3 py-1 font-semibold cursor-pointer ${isProfessional ? '' : 'text-muted-foreground'}`}
-            onClick={() => !isProfessional && setShowProfessionalQuiz(true)}
-            data-testid="badge-professional"
-          >
-            {isProfessional && <Award className="w-3 h-3 mr-1" />}
-            Professional
-          </Badge>
+           //  variant={isProfessional ? "secondary" : "outline"}
+            // className={`px-3 py-1 font-semibold cursor-pointer ${isProfessional ? '' : 'text-muted-foreground'}`}
+            // onClick={() => !isProfessional && setShowProfessionalQuiz(true)}
+            // data-testid="badge-professional"
+          // >
+           //  {isProfessional && <Award className="w-3 h-3 mr-1" />}
+           //  Professional
+          // </Badge> */}
           <div className="ml-auto cursor-pointer" onClick={() => setShowSeedsDashboard(true)}>
             <Badge variant="secondary" className="gap-1.5 px-3 py-1.5" data-testid="badge-seeds">
               <Sprout className="w-3.5 h-3.5 text-primary" />

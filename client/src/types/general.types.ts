@@ -1,4 +1,4 @@
-// ─── Sign Up ────────────────────────────────────────────────────────────────
+// Sign Up
 
 export interface SignUpPayload {
   email: string;
@@ -12,7 +12,7 @@ export interface SignUpResponse {
   detail?: string;
 }
 
-// ─── Sign In ────────────────────────────────────────────────────────────────
+// Sign In
 
 export interface SignInPayload {
   email: string;
@@ -25,7 +25,7 @@ export interface SignInResponse {
   id: string;
 }
 
-// ─── Verify ─────────────────────────────────────────────────────────────────
+// Verify 
 
 export interface VerifyPayload {
   otp_code: string;    
@@ -37,7 +37,7 @@ export interface VerifyResponse {
   detail?: string;
 }
 
-// ─── Google Auth ─────────────────────────────────────────────────────────────
+// Google Auth
 
 export interface GoogleAuthPayload {
   id_token: string; // Google ID token from Google Sign-In SDK
@@ -56,7 +56,7 @@ export interface GoogleAuthResponse {
   detail?: string;
 }
 
-// ─── Onboarding ──────────────────────────────────────────────────────────────
+// Onboarding
 
 export interface OnboardingPayload {
   financial_literacy_level: string;
@@ -83,7 +83,7 @@ export interface OnboardingResponse {
   detail?: string;
 }
 
-// ─── User Detail ─────────────────────────────────────────────────────────────
+// User Detail 
 
 export interface UserDetail {
   id: string;
@@ -127,7 +127,7 @@ export interface UserDetail {
   image: string; // read-only URI
 }
 
-// ─── Shared Error Shape ─────────────────────────────────────────────────────
+// Shared Error Shape
 
 export interface ApiErrorResponse {
   detail?: string;
@@ -139,7 +139,7 @@ export interface ApiErrorResponse {
   [key: string]: unknown;
 }
 
-// ─── API Response Shape — GET /book/book/ ────────────────────────────────────
+// API Response Shape — GET /book/book/ 
 
 export interface ApiBook {
   id: string;
@@ -154,7 +154,7 @@ export interface ApiBook {
   pub_date: string;
 }
 
-// ─── UI Shape used in components ─────────────────────────────────────────────
+// UI Shape used in components 
 
 export interface Book {
   id: string;
@@ -169,7 +169,7 @@ export interface Book {
   pub_date: string;
 }
 
-// ─── Adapter — maps API shape → UI shape ─────────────────────────────────────
+// Adapter — maps API shape → UI shape 
 
 export const adaptBook = (apiBook: ApiBook): Book => ({
   id: apiBook.id,
@@ -182,4 +182,94 @@ export const adaptBook = (apiBook: ApiBook): Book => ({
   downloads: Number(apiBook.downloads) || 0,
   locked: !apiBook.status,   // status: true = available, false = locked
   pub_date: apiBook.pub_date,
+});
+
+
+// API Response Shape — GET /learn/lessons/
+ 
+export interface ApiLesson {
+  id: string;
+  title: string;
+  track: string;        // category / track name (e.g. "Stocks", "Crypto")
+  content: string;      // lesson body / description
+  duration: string;     // e.g. "10 mins"
+  lesson_count: string; // number of sub-lessons
+  required_seed: string;
+  status: boolean;      // true = available
+  pub_date: string;
+}
+
+// UI Shape 
+ 
+export interface Lesson {
+  id: string;
+  title: string;
+  track: string;
+  content: string;
+  duration: string;
+  lessonCount: number;
+  requiredSeed: number;
+  locked: boolean;      // derived: !status
+  pubDate: string;
+}
+
+// Adapter 
+ 
+export const adaptLesson = (api: ApiLesson): Lesson => ({
+  id: api.id,
+  title: api.title,
+  track: api.track,
+  content: api.content,
+  duration: api.duration,
+  lessonCount: Number(api.lesson_count) || 0,
+  requiredSeed: Number(api.required_seed) || 0,
+  locked: !api.status,
+  pubDate: api.pub_date,
+});
+
+// Lesson Modules 
+
+// ─── API Response Shape — GET /learn/modules/ ─────────────────────────────────
+ 
+export interface ApiModule {
+  id: string;
+  lessons: ApiLesson[];  // nested lessons array (may be empty)
+  title: string;
+  description: string;
+  track: string;
+  duration: string;
+  lesson_count: string;
+  required_seed: string;
+  status: boolean;
+  pub_date: string;
+}
+ 
+// ─── UI Shape ─────────────────────────────────────────────────────────────────
+ 
+export interface Module {
+  id: string;
+  lessons: Lesson[];     // adapted nested lessons
+  title: string;
+  description: string;
+  track: string;
+  duration: string;
+  lessonCount: number;
+  requiredSeed: number;
+  locked: boolean;       // derived: !status
+  pubDate: string;
+}
+ 
+// ─── Adapter ──────────────────────────────────────────────────────────────────
+ 
+export const adaptModule = (api: ApiModule): Module => ({
+  id: api.id,
+  lessons: (api.lessons ?? []).map(adaptLesson),
+  title: api.title,
+  description: api.description,
+  track: api.track,
+  duration: api.duration,
+  lessonCount: Number(api.lesson_count) || 0,
+  requiredSeed: Number(api.required_seed) || 0,
+  locked: !api.status,
+  pubDate: api.pub_date,
 });

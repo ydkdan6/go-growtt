@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import type { ApiErrorResponse } from "../types/auth.types";
+import type { ApiErrorResponse } from "../types/general.types";
 
 /**
  * Extracts a human-readable error message from an Axios error.

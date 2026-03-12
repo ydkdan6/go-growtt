@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { verifyApi } from "../../api/auth.api";
+import { verifyApi } from "../../api/general.api";
 import { parseApiError } from "../../utils/parseApiError";
 import { authKeys } from "@/config/queryKeys";
-import type { VerifyPayload, VerifyResponse } from "../../types/auth.types";
+import type { VerifyPayload, VerifyResponse } from "../../types/general.types";
 
 interface UseVerifyOptions {
   onSuccess?: (data: VerifyResponse) => void;

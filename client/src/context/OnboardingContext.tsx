@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
-import type { OnboardingPayload, OnboardingStepPayload } from "@/types/auth.types";
+import type { OnboardingPayload, OnboardingStepPayload } from "@/types/general.types";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

@@ -4,7 +4,7 @@ import AuthLayout from "./../../components/auth/AuthLayout";
 import AuthButton from "./../../components/auth/AuthButton";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useVerify } from "@/hooks/auth/useVerify";
+import { useVerify } from "@/hooks/general/useVerify";
 import { getErrorMessage } from "@/utils/getErrorMessage";
 
 

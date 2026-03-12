@@ -5,8 +5,8 @@ import AuthInput from "./../../components/auth/AuthInput";
 import AuthButton from "./../../components/auth/AuthButton";
 import { useToast } from "@/hooks/use-toast";
 import { useGoogleLogin } from "@react-oauth/google";
-import { useSignIn } from "@/hooks/auth/useSignIn";
-import { useGoogleAuth } from "@/hooks/auth/usegoogleauth";
+import { useSignIn } from "@/hooks/general/useSignIn";
+import { useGoogleAuth } from "@/hooks/general/usegoogleauth";
 import { getErrorMessage } from "@/utils/getErrorMessage";
 
 export default function Login() {

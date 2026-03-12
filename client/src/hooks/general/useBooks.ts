@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { getBooksApi } from "@/api/auth.api";
-import { adaptBook } from "@/types/auth.types";
-import type { Book } from "@/types/auth.types";
+import { getBooksApi } from "@/api/general.api";
+import { adaptBook } from "@/types/general.types";
+import type { Book } from "@/types/general.types";
 import { parseApiError } from "../../utils/parseApiError";
 
 export const bookKeys = {
