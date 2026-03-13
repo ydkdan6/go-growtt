@@ -4,52 +4,26 @@ import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { useBooks } from "@/hooks/general/useBooks";
+import { useModules } from "@/hooks/general/useLessonModules";
+import { useUserDetail } from "@/hooks/general/useUserDetails";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "../components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../components/ui/sheet";
 import { Progress } from "../components/ui/progress";
 import { ThemeToggle } from "../components/theme-toggle";
 import { BottomNav } from "../components/bottom-nav";
-import { 
-  Wallet, 
-  Plus, 
-  ArrowUpRight, 
-  TrendingUp, 
-  Bitcoin, 
-  Building2, 
-  Rocket, 
-  Sparkles,
-  BookOpen,
-  Users,
-  Sprout,
-  Lock,
-  ChevronRight,
-  GraduationCap,
-  Target,
-  Lightbulb,
-  Brain,
-  Eye,
-  Bell,
-  Search,
-  Play,
-  BarChart3,
-  Trophy,
-  CheckCircle2,
-  XCircle,
-  Award
+import {
+  Wallet, Plus, ArrowUpRight, TrendingUp, Bitcoin, Building2, Rocket,
+  Sparkles, BookOpen, Users, Sprout, Lock, ChevronRight, GraduationCap,
+  Target, Lightbulb, Brain, Eye, Bell, Search, Play, BarChart3, Trophy,
+  CheckCircle2, XCircle, Award,
 } from "lucide-react";
-// import growttLogo from "@assets/Growtt_Icon_Primary_1770990881558.jpg";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Label } from "../components/ui/label";
 
 const tipMessages = [
   { icon: Lightbulb, text: "Confused how to start? Tap on a module to learn and unlock access to real investing" },
-  { icon: Brain, text: "Why learn to invest first? Because knowledge is your most valuable investment" },
-  { icon: Target, text: "Complete learning modules to earn seeds and unlock premium features" },
+  { icon: Brain,     text: "Why learn to invest first? Because knowledge is your most valuable investment" },
+  { icon: Target,    text: "Complete learning modules to earn seeds and unlock premium features" },
   { icon: GraduationCap, text: "Master the basics before risking your hard-earned money in the market" },
 ];
 
@@ -111,101 +85,79 @@ const professionalQuizQuestions = [
   },
 ];
 
-const investmentCategories = [
-  { 
-    id: "stocks", 
-    name: "Stocks", 
-    icon: TrendingUp, 
-    color: "bg-blue-500/10 dark:bg-blue-500/20", 
-    iconColor: "text-blue-600 dark:text-blue-400",
-    description: "Learn the fundamentals of stock market investing",
-    modules: 8,
-    completed: 0
-  },
-  { 
-    id: "crypto", 
-    name: "Crypto", 
-    icon: Bitcoin, 
-    color: "bg-orange-500/10 dark:bg-orange-500/20", 
-    iconColor: "text-orange-600 dark:text-orange-400",
-    description: "Understand cryptocurrency and blockchain technology",
-    modules: 6,
-    completed: 0
-  },
-  { 
-    id: "real-estate", 
-    name: "Real Estate", 
-    icon: Building2, 
-    color: "bg-emerald-500/10 dark:bg-emerald-500/20", 
-    iconColor: "text-emerald-600 dark:text-emerald-400",
-    description: "Property investment strategies and REITs",
-    modules: 5,
-    completed: 0
-  },
-  { 
-    id: "angel", 
-    name: "Angel Investing", 
-    icon: Rocket, 
-    color: "bg-purple-500/10 dark:bg-purple-500/20", 
-    iconColor: "text-purple-600 dark:text-purple-400",
-    description: "Investing in early-stage startups",
-    modules: 7,
-    completed: 0
-  },
-];
-
-// const featuredBooks = [
-//   { title: "The Intelligent Investor", author: "Benjamin Graham", seeds: 50 },
-//   { title: "Rich Dad Poor Dad", author: "Robert Kiyosaki", seeds: 40 },
-//   { title: "A Random Walk Down Wall Street", author: "Burton Malkiel", seeds: 60 },
-// ];
+// ─── Module icon mapping — map module title keywords to icons ─────────────────
+const getModuleIcon = (title: string) => {
+  const t = title.toLowerCase();
+  if (t.includes("stock") || t.includes("equity"))  return { icon: TrendingUp,  color: "bg-blue-500/10 dark:bg-blue-500/20",    iconColor: "text-blue-600 dark:text-blue-400" };
+  if (t.includes("crypto") || t.includes("bitcoin")) return { icon: Bitcoin,     color: "bg-orange-500/10 dark:bg-orange-500/20", iconColor: "text-orange-600 dark:text-orange-400" };
+  if (t.includes("real estate") || t.includes("property")) return { icon: Building2, color: "bg-emerald-500/10 dark:bg-emerald-500/20", iconColor: "text-emerald-600 dark:text-emerald-400" };
+  if (t.includes("angel") || t.includes("startup")) return { icon: Rocket,      color: "bg-purple-500/10 dark:bg-purple-500/20", iconColor: "text-purple-600 dark:text-purple-400" };
+  if (t.includes("portfolio") || t.includes("fund")) return { icon: BarChart3,   color: "bg-indigo-500/10 dark:bg-indigo-500/20", iconColor: "text-indigo-600 dark:text-indigo-400" };
+  // fallback
+  return { icon: TrendingUp, color: "bg-primary/10", iconColor: "text-primary" };
+};
 
 export default function Home() {
   const [, setLocation] = useLocation();
-  const [showFundingDialog, setShowFundingDialog] = useState(false);
-  const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [showFundingDialog, setShowFundingDialog]       = useState(false);
+  const [currentTipIndex, setCurrentTipIndex]           = useState(0);
   const [showProfessionalQuiz, setShowProfessionalQuiz] = useState(false);
-  const [quizStep, setQuizStep] = useState(0); // 0 = intro, 1-5 = questions, 6 = results
-  const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
-  const [isProfessional, setIsProfessional] = useState(false);
-  const [showSeedsDashboard, setShowSeedsDashboard] = useState(false);
-  const { data: books = [], isLoading: booksLoading } = useBooks();
-  
-  const [activeWalletCard, setActiveWalletCard] = useState(0);
+  const [quizStep, setQuizStep]                         = useState(0);
+  const [quizAnswers, setQuizAnswers]                   = useState<Record<number, string>>({});
+  const [isProfessional, setIsProfessional]             = useState(false);
+  const [showSeedsDashboard, setShowSeedsDashboard]     = useState(false);
+  const [activeWalletCard, setActiveWalletCard]         = useState(0);
   const walletScrollRef = useRef<HTMLDivElement>(null);
-  
-  const userSeeds = 120;
-  const totalBalance = 123122.90;
-  const demoBalance = 5000000.00;
-  
-  const calculateQuizScore = () => {
-    let correct = 0;
-    professionalQuizQuestions.forEach((q) => {
-      if (quizAnswers[q.id] === q.correctAnswer) {
-        correct++;
-      }
-    });
-    return correct;
-  };
-  
+
+  // ── API data ────────────────────────────────────────────────────────────
+  const { data: user }                                  = useUserDetail();
+  const { data: books = [], isLoading: booksLoading }   = useBooks();
+  const { data: modules = [], isLoading: modulesLoading } = useModules();
+
+  // ── Derived user values ──────────────────────────────────────────────────
+  const displayName =
+    user?.full_name ||
+    (user?.first_name ? `${user.first_name} ${user.last_name}`.trim() : null) ||
+    user?.username ||
+    "";
+
+  // Seeds — wallet_balance until a dedicated seeds field is added to API
+  const userSeeds    = Number(user?.wallet_balance) || 0;
+  const walletBalance = Number(user?.wallet_balance) || 0;
+  const demoBalance   = Number(user?.demo_balance)   || 0;
+
+  // Level from financial_literacy_level onboarding field
+  const userLevel = user?.financial_literacy_level || "Beginner";
+
+  // Progress
+  const lessonProgress = Number(user?.lesson_progress) || 0;
+  const learnProgress  = Number(user?.learn_progress)  || 0;
+
+  // Avatar
+  const BASE_API = "https://www.api.growtt.com";
+  const avatarSrc = user?.image
+    ? (user.image.startsWith("http") ? user.image : `${BASE_API}${user.image}`)
+    : null;
+
+  // ── Show first 4 modules in "Start Learning" section ────────────────────
+  const featuredModules = modules.slice(0, 4);
+
+  // ── Quiz logic ───────────────────────────────────────────────────────────
+  const calculateQuizScore = () =>
+    professionalQuizQuestions.filter((q) => quizAnswers[q.id] === q.correctAnswer).length;
+
   const handleQuizSubmit = () => {
-    const score = calculateQuizScore();
-    const passed = score >= 4; // Need 4/5 to pass
-    if (passed) {
-      setIsProfessional(true);
-    }
-    setQuizStep(6); // Show results
+    if (calculateQuizScore() >= 4) setIsProfessional(true);
+    setQuizStep(6);
   };
-  
+
   const resetQuiz = () => {
     setQuizStep(0);
     setQuizAnswers({});
     setShowProfessionalQuiz(false);
   };
 
-  const navigateToCourse = (categoryId: string) => {
-    setLocation(`/course/${categoryId}`);
-  };
+  const navigateToCourse = (moduleId: string) => setLocation(`/course/${moduleId}`);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -218,14 +170,22 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background pb-24 lg:pb-8">
-      {/* Header */}
+      {/* ── Header ── */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
         <div className="max-w-lg lg:max-w-4xl xl:max-w-6xl mx-auto px-4 lg:px-6 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <img src="/src/assets/Growtt_Icon_Primary_1770990881558.jpg" alt="Growtt" className="w-8 h-8 rounded-full object-cover" />
+            {avatarSrc ? (
+              <img src="/src/assets/Growtt_Icon_Primary_1770990881558.jpg" alt={displayName} className="w-8 h-8 rounded-full object-cover" />
+            ) : (
+<img
+            src="/src/assets/Growtt_Icon_Primary_1770990881558.jpg"
+            alt="Growtt"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+                      )}
             <div>
               <p className="text-xs text-muted-foreground">Welcome back</p>
-              {/* <p className="font-semibold text-sm"></p> */}
+              {displayName && <p className="font-semibold text-sm">{displayName}</p>}
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -241,26 +201,16 @@ export default function Home() {
       </header>
 
       <main className="max-w-lg lg:max-w-4xl xl:max-w-6xl mx-auto px-4 lg:px-6 pt-4 lg:pt-6 space-y-5 lg:space-y-6">
-        {/* Level Badge */}
+
+        {/* ── Level Badge — from financial_literacy_level ── */}
         <div className="flex items-center gap-3">
-          <Badge 
-            variant={isProfessional ? "outline" : "secondary"} 
-            className={`px-3 py-1 font-semibold cursor-pointer ${!isProfessional ? '' : 'text-muted-foreground'}`}
-            onClick={() => !isProfessional && setIsProfessional(false)}
+          <Badge
+            variant={isProfessional ? "outline" : "secondary"}
+            className="px-3 py-1 font-semibold cursor-pointer"
             data-testid="badge-beginner"
           >
-            Beginner
+            {isProfessional ? <><Award className="w-3 h-3 mr-1" />Professional</> : userLevel}
           </Badge>
-          {/* // <span className="text-muted-foreground text-sm">|</span>
-          <Badge 
-           //  variant={isProfessional ? "secondary" : "outline"}
-            // className={`px-3 py-1 font-semibold cursor-pointer ${isProfessional ? '' : 'text-muted-foreground'}`}
-            // onClick={() => !isProfessional && setShowProfessionalQuiz(true)}
-            // data-testid="badge-professional"
-          // >
-           //  {isProfessional && <Award className="w-3 h-3 mr-1" />}
-           //  Professional
-          // </Badge> */}
           <div className="ml-auto cursor-pointer" onClick={() => setShowSeedsDashboard(true)}>
             <Badge variant="secondary" className="gap-1.5 px-3 py-1.5" data-testid="badge-seeds">
               <Sprout className="w-3.5 h-3.5 text-primary" />
@@ -270,258 +220,196 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Desktop: Two column layout for wallet and quick actions */}
         <div className="lg:grid lg:grid-cols-2 lg:gap-6 space-y-5 lg:space-y-0">
-        {/* Wallet Cards Carousel */}
-        <div className="relative">
-          <div 
-            ref={walletScrollRef}
-            className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4"
-            onScroll={(e) => {
-              const el = e.currentTarget;
-              const cardWidth = el.scrollWidth / 2;
-              const idx = Math.round(el.scrollLeft / cardWidth);
-              setActiveWalletCard(idx);
-            }}
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {/* Wallet Balance Card */}
-            <Card className="border-0 bg-growtt-wallet dark:bg-growtt-wallet overflow-visible rounded-2xl flex-shrink-0 w-full snap-center" data-testid="card-wallet-balance">
-              <CardContent className="p-5 lg:p-6">
-                <div className="flex items-center gap-2 mb-1">
-                  <Wallet className="w-4 h-4 text-foreground/60" />
-                  <p className="text-foreground/70 text-sm font-medium">Wallet balance</p>
-                  <Eye className="w-4 h-4 text-foreground/60 ml-auto" />
-                </div>
-                <h2 className="text-3xl font-bold text-foreground mb-4">₦{totalBalance.toLocaleString()}</h2>
-                
-                <div className="flex gap-3">
-                  <Button 
-                    className="flex-1 bg-primary text-primary-foreground"
-                    onClick={() => setShowFundingDialog(true)}
-                    data-testid="button-add-funds"
-                  >
-                    <Plus className="w-4 h-4 mr-1.5" />
-                    Add Funds
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex-1 bg-white/50 dark:bg-white/10 border-foreground/20 text-foreground"
-                    data-testid="button-withdraw"
-                  >
-                    <ArrowUpRight className="w-4 h-4 mr-1.5" />
-                    Withdraw
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          {/* ── Wallet carousel ── */}
+          <div className="relative">
+            <div
+              ref={walletScrollRef}
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-2 -mx-4 px-4"
+              onScroll={(e) => {
+                const el = e.currentTarget;
+                setActiveWalletCard(Math.round(el.scrollLeft / (el.scrollWidth / 2)));
+              }}
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {/* Wallet Balance Card — from user.wallet_balance */}
+              <Card className="border-0 bg-growtt-wallet dark:bg-growtt-wallet overflow-visible rounded-2xl flex-shrink-0 w-full snap-center" data-testid="card-wallet-balance">
+                <CardContent className="p-5 lg:p-6">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Wallet className="w-4 h-4 text-foreground/60" />
+                    <p className="text-foreground/70 text-sm font-medium">Wallet balance</p>
+                    <Eye className="w-4 h-4 text-foreground/60 ml-auto" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-foreground mb-4">
+                    ₦{walletBalance.toLocaleString()}
+                  </h2>
+                  <div className="flex gap-3">
+                    <Button className="flex-1 bg-primary text-primary-foreground" onClick={() => setShowFundingDialog(true)} data-testid="button-add-funds">
+                      <Plus className="w-4 h-4 mr-1.5" />Add Funds
+                    </Button>
+                    <Button variant="outline" className="flex-1 bg-white/50 dark:bg-white/10 border-foreground/20 text-foreground" data-testid="button-withdraw">
+                      <ArrowUpRight className="w-4 h-4 mr-1.5" />Withdraw
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Demo Balance Card */}
-            <Card className="border-0 bg-growtt-wallet dark:bg-growtt-wallet overflow-visible rounded-2xl flex-shrink-0 w-full snap-center" data-testid="card-demo-balance">
-              <CardContent className="p-5 lg:p-6">
-                <div className="flex items-center gap-2 mb-1">
-                  <Play className="w-4 h-4 text-foreground/60" />
-                  <p className="text-foreground/70 text-sm font-medium">Demo balance</p>
-                  <Badge className="ml-auto bg-foreground/10 text-foreground/70 border-0 text-[10px]">Practice Mode</Badge>
-                </div>
-                <h2 className="text-3xl font-bold text-foreground mb-1">₦{demoBalance.toLocaleString()}</h2>
-                <p className="text-foreground/50 text-xs mb-3">Risk-free virtual funds to practice trading</p>
-                
-                <div className="flex gap-3">
-                  <Button 
-                    className="flex-1 bg-primary text-primary-foreground"
-                    data-testid="button-invest-demo"
-                  >
-                    <Play className="w-4 h-4 mr-1.5" />
-                    Invest with Demo Funds
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="bg-white/50 dark:bg-white/10 border-foreground/20 text-foreground"
-                    data-testid="button-reset-demo"
-                  >
-                    Reset
-                  </Button>
-                </div>
+              {/* Demo Balance Card — from user.demo_balance */}
+              <Card className="border-0 bg-growtt-wallet dark:bg-growtt-wallet overflow-visible rounded-2xl flex-shrink-0 w-full snap-center" data-testid="card-demo-balance">
+                <CardContent className="p-5 lg:p-6">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Play className="w-4 h-4 text-foreground/60" />
+                    <p className="text-foreground/70 text-sm font-medium">Demo balance</p>
+                    <Badge className="ml-auto bg-foreground/10 text-foreground/70 border-0 text-[10px]">Practice Mode</Badge>
+                  </div>
+                  <h2 className="text-3xl font-bold text-foreground mb-1">
+                    ₦{demoBalance.toLocaleString()}
+                  </h2>
+                  <p className="text-foreground/50 text-xs mb-3">Risk-free virtual funds to practice trading</p>
+                  <div className="flex gap-3">
+                    <Button className="flex-1 bg-primary text-primary-foreground" data-testid="button-invest-demo">
+                      <Play className="w-4 h-4 mr-1.5" />Invest with Demo Funds
+                    </Button>
+                    <Button variant="outline" className="bg-white/50 dark:bg-white/10 border-foreground/20 text-foreground" data-testid="button-reset-demo">
+                      Reset
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="flex justify-center gap-2 mt-2">
+              <button className={`w-2 h-2 rounded-full transition-all ${activeWalletCard === 0 ? "bg-primary w-5" : "bg-muted-foreground/30"}`} onClick={() => walletScrollRef.current?.scrollTo({ left: 0, behavior: "smooth" })} data-testid="dot-wallet" />
+              <button className={`w-2 h-2 rounded-full transition-all ${activeWalletCard === 1 ? "bg-primary w-5" : "bg-muted-foreground/30"}`} onClick={() => walletScrollRef.current?.scrollTo({ left: walletScrollRef.current.scrollWidth / 2, behavior: "smooth" })} data-testid="dot-demo" />
+            </div>
+          </div>
+
+          {/* ── Quick Actions ── */}
+          <div className="flex gap-3 lg:flex-col lg:justify-center">
+            <Button variant="outline" className="flex-1 h-auto py-3 lg:py-4 flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-start bg-primary border-0 text-white hover:bg-growtt-ai/90" onClick={() => setLocation("/growtt-ai")} data-testid="button-growtt-ai">
+              <Sparkles className="w-5 h-5" />
+              <span className="text-xs lg:text-sm font-medium">Growtt AI</span>
+            </Button>
+            <Button variant="outline" className="flex-1 h-auto py-3 lg:py-4 flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-start bg-primary border-0 text-white hover:bg-growtt-portfolio/90" onClick={() => modules[0] && navigateToCourse(modules[0].id)} data-testid="button-portfolio">
+              <BarChart3 className="w-5 h-5" />
+              <span className="text-xs lg:text-sm font-medium">Portfolio</span>
+            </Button>
+            <Card className="flex-1 border bg-gradient-to-r from-yellow-500/10 to-amber-500/10 dark:from-yellow-500/20 dark:to-amber-500/20 hover-elevate cursor-pointer" onClick={() => setLocation("/leaderboard")} data-testid="card-leaderboard">
+              <CardContent className="p-3 lg:p-4 flex flex-col lg:flex-row items-center gap-1 lg:gap-3">
+                <Trophy className="w-5 h-5 text-yellow-500" />
+                <span className="text-xs lg:text-sm font-medium">Leaderboard</span>
               </CardContent>
             </Card>
           </div>
-          
-          {/* Dot Indicators */}
-          <div className="flex justify-center gap-2 mt-2">
-            <button 
-              className={`w-2 h-2 rounded-full transition-all ${activeWalletCard === 0 ? 'bg-primary w-5' : 'bg-muted-foreground/30'}`}
-              onClick={() => walletScrollRef.current?.scrollTo({ left: 0, behavior: 'smooth' })}
-              data-testid="dot-wallet"
-            />
-            <button 
-              className={`w-2 h-2 rounded-full transition-all ${activeWalletCard === 1 ? 'bg-primary w-5' : 'bg-muted-foreground/30'}`}
-              onClick={() => walletScrollRef.current?.scrollTo({ left: walletScrollRef.current.scrollWidth / 2, behavior: 'smooth' })}
-              data-testid="dot-demo"
-            />
-          </div>
         </div>
 
-        {/* Quick Actions - Horizontal row with icons */}
-        <div className="flex gap-3 lg:flex-col lg:justify-center">
-          <Button
-            variant="outline"
-            className="flex-1 h-auto py-3 lg:py-4 flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-start bg-primary border-0 text-white hover:bg-growtt-ai/90"
-            onClick={() => setLocation("/growtt-ai")}
-            data-testid="button-growtt-ai"
-          >
-            <Sparkles className="w-5 h-5" />
-            <span className="text-xs lg:text-sm font-medium">Growtt AI</span>
-          </Button>
-          
-          <Button
-            variant="outline"
-            className="flex-1 h-auto py-3 lg:py-4 flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-start bg-primary border-0 text-white hover:bg-growtt-portfolio/90"
-            onClick={() => navigateToCourse("portfolio")}
-            data-testid="button-portfolio"
-          >
-            <BarChart3 className="w-5 h-5" />
-            <span className="text-xs lg:text-sm font-medium">Portfolio</span>
-          </Button>
-          
-          <Card 
-            className="flex-1 border bg-gradient-to-r from-yellow-500/10 to-amber-500/10 dark:from-yellow-500/20 dark:to-amber-500/20 hover-elevate cursor-pointer"
-            onClick={() => setLocation("/leaderboard")}
-            data-testid="card-leaderboard"
-          >
-            <CardContent className="p-3 lg:p-4 flex flex-col lg:flex-row items-center gap-1 lg:gap-3">
-              <Trophy className="w-5 h-5 text-yellow-500" />
-              <span className="text-xs lg:text-sm font-medium">Leaderboard</span>
-            </CardContent>
-          </Card>
-        </div>
-        </div>
-
-        {/* Tips Banner - Full width, one message at a time */}
-        <Card 
-          className="border bg-gradient-to-r from-primary/5 to-accent/5 hover-elevate cursor-pointer"
-          data-testid={`tip-card-${currentTipIndex}`}
-          onClick={() => setCurrentTipIndex((prev) => (prev + 1) % tipMessages.length)}
-        >
+        {/* ── Tips Banner ── */}
+        <Card className="border bg-gradient-to-r from-primary/5 to-accent/5 hover-elevate cursor-pointer" data-testid={`tip-card-${currentTipIndex}`} onClick={() => setCurrentTipIndex((prev) => (prev + 1) % tipMessages.length)}>
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
               <CurrentTipIcon className="w-5 h-5 text-primary" />
             </div>
-            <p className="text-sm text-foreground leading-snug flex-1">
-              {tipMessages[currentTipIndex].text}
-            </p>
+            <p className="text-sm text-foreground leading-snug flex-1">{tipMessages[currentTipIndex].text}</p>
             <div className="flex gap-1">
               {tipMessages.map((_, idx) => (
-                <div 
-                  key={idx}
-                  className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                    idx === currentTipIndex ? 'bg-primary' : 'bg-muted-foreground/30'
-                  }`}
-                />
+                <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-colors ${idx === currentTipIndex ? "bg-primary" : "bg-muted-foreground/30"}`} />
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Start Learning Section */}
+        {/* ── Start Learning — from /learn/modules/ API ── */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-lg">Start Learning</h3>
             <Button variant="ghost" size="sm" className="text-muted-foreground text-xs gap-1" onClick={() => setLocation("/learn")} data-testid="button-view-all-courses">
-              View All
-              <ChevronRight className="w-3 h-3" />
+              View All <ChevronRight className="w-3 h-3" />
             </Button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 lg:gap-4">
-            {investmentCategories.map((category) => (
-              <Card 
-                key={category.id}
-                className="border hover-elevate cursor-pointer"
-                onClick={() => navigateToCourse(category.id)}
-                data-testid={`category-${category.id}`}
-              >
-                <CardContent className="p-4">
-                  <div className={`w-11 h-11 rounded-xl ${category.color} flex items-center justify-center mb-3`}>
-                    <category.icon className={`w-5 h-5 ${category.iconColor}`} />
-                  </div>
-                  <p className="font-medium text-sm mb-1">{category.name}</p>
-                  <div className="flex items-center gap-1.5">
-                    <Progress value={0} className="h-1.5 flex-1" />
-                    <span className="text-[10px] text-muted-foreground">0/{category.modules}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+            {modulesLoading
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <Card key={i} className="border">
+                    <CardContent className="p-4">
+                      <div className="w-11 h-11 rounded-xl bg-muted animate-pulse mb-3" />
+                      <div className="h-3.5 bg-muted animate-pulse rounded w-3/4 mb-2" />
+                      <div className="h-2 bg-muted animate-pulse rounded w-full" />
+                    </CardContent>
+                  </Card>
+                ))
+              : featuredModules.map((module) => {
+                  const { icon: Icon, color, iconColor } = getModuleIcon(module.title);
+                  const lessonCount = module.lessons.length || module.lessonCount;
+                  return (
+                    <Card key={module.id} className="border hover-elevate cursor-pointer" onClick={() => navigateToCourse(module.id)} data-testid={`category-${module.id}`}>
+                      <CardContent className="p-4">
+                        <div className={`w-11 h-11 rounded-xl ${color} flex items-center justify-center mb-3 relative`}>
+                          <Icon className={`w-5 h-5 ${iconColor}`} />
+                          {module.locked && (
+                            <div className="absolute inset-0 rounded-xl bg-background/70 flex items-center justify-center">
+                              <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        <p className="font-medium text-sm mb-1 line-clamp-1">{module.title}</p>
+                        <div className="flex items-center gap-1.5">
+                          <Progress value={0} className="h-1.5 flex-1" />
+                          <span className="text-[10px] text-muted-foreground">0/{lessonCount}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+            }
           </div>
         </section>
 
-        {/* Books Section */}
+        {/* ── Books — already wired via useBooks() ── */}
         <section>
-  <div className="flex items-center justify-between mb-3">
-    <h3 className="font-semibold flex items-center gap-2">
-      <BookOpen className="w-4 h-4 text-primary" />
-      Books
-    </h3>
-    <Button
-      variant="ghost"
-      size="sm"
-      className="text-muted-foreground text-xs gap-1"
-      onClick={() => setLocation("/books")}
-      data-testid="button-view-all-books"
-    >
-      View All
-      <ChevronRight className="w-3 h-3" />
-    </Button>
-  </div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-primary" />Books
+            </h3>
+            <Button variant="ghost" size="sm" className="text-muted-foreground text-xs gap-1" onClick={() => setLocation("/books")} data-testid="button-view-all-books">
+              View All <ChevronRight className="w-3 h-3" />
+            </Button>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+            {booksLoading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="min-w-[180px] flex-shrink-0 rounded-xl border bg-card p-4 space-y-3">
+                    <div className="w-full h-20 rounded-lg bg-muted animate-pulse" />
+                    <div className="h-3.5 bg-muted animate-pulse rounded w-3/4" />
+                    <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
+                    <div className="h-5 bg-muted animate-pulse rounded w-1/3" />
+                  </div>
+                ))
+              : books.length === 0
+              ? <p className="text-sm text-muted-foreground py-4">No books available yet.</p>
+              : books.slice(0, 5).map((book) => (
+                  <Card key={book.id} className="min-w-[180px] border hover-elevate cursor-pointer flex-shrink-0" onClick={() => setLocation("/books")} data-testid={`book-${book.id}`}>
+                    <CardContent className="p-4">
+                      <div className="w-full h-20 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3 relative">
+                        <BookOpen className="w-7 h-7 text-primary/50" />
+                        {book.locked && (
+                          <div className="absolute inset-0 rounded-lg bg-background/60 flex items-center justify-center">
+                            <Lock className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="font-medium text-sm line-clamp-1">{book.title}</p>
+                      <p className="text-xs text-muted-foreground mb-2">{book.author}</p>
+                      <Badge variant="secondary" className="gap-1 text-xs">
+                        <Sprout className="w-3 h-3" />{book.seeds} seeds
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                ))
+            }
+          </div>
+        </section>
 
-  <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
-    {booksLoading ? (
-      // ── Skeleton shimmer while loading ──
-      Array.from({ length: 3 }).map((_, i) => (
-        <div
-          key={i}
-          className="min-w-[180px] flex-shrink-0 rounded-xl border bg-card p-4 space-y-3"
-        >
-          <div className="w-full h-20 rounded-lg bg-muted animate-pulse" />
-          <div className="h-3.5 bg-muted animate-pulse rounded w-3/4" />
-          <div className="h-3 bg-muted animate-pulse rounded w-1/2" />
-          <div className="h-5 bg-muted animate-pulse rounded w-1/3" />
-        </div>
-      ))
-    ) : books.length === 0 ? (
-      <p className="text-sm text-muted-foreground py-4">No books available yet.</p>
-    ) : (
-      // ── Show first 5 books from API ──
-      books.slice(0, 5).map((book) => (
-        <Card
-          key={book.id}
-          className="min-w-[180px] border hover-elevate cursor-pointer flex-shrink-0"
-          onClick={() => setLocation("/books")}
-          data-testid={`book-${book.id}`}
-        >
-          <CardContent className="p-4">
-            <div className="w-full h-20 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3 relative">
-              <BookOpen className="w-7 h-7 text-primary/50" />
-              {book.locked && (
-                <div className="absolute inset-0 rounded-lg bg-background/60 flex items-center justify-center">
-                  <Lock className="w-4 h-4 text-muted-foreground" />
-                </div>
-              )}
-            </div>
-            <p className="font-medium text-sm line-clamp-1">{book.title}</p>
-            <p className="text-xs text-muted-foreground mb-2">{book.author}</p>
-            <Badge variant="secondary" className="gap-1 text-xs">
-              <Sprout className="w-3 h-3" />
-              {book.seeds} seeds
-            </Badge>
-          </CardContent>
-        </Card>
-      ))
-    )}
-  </div>
-</section>
-
-        {/* Referrals Section */}
+        {/* ── Referrals ── */}
         <section>
           <Card className="border bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20">
             <CardContent className="p-4 flex items-center gap-4">
@@ -532,15 +420,13 @@ export default function Home() {
                 <p className="font-semibold text-sm">Invite Friends</p>
                 <p className="text-xs text-muted-foreground">Earn 50 seeds for each friend who joins</p>
               </div>
-              <Button size="sm" data-testid="button-referrals">
-                Share
-              </Button>
+              <Button size="sm" data-testid="button-referrals">Share</Button>
             </CardContent>
           </Card>
         </section>
       </main>
 
-      {/* Add Funds Dialog (Learn First) */}
+      {/* ── Add Funds Dialog ── */}
       <Dialog open={showFundingDialog} onOpenChange={setShowFundingDialog}>
         <DialogContent className="max-w-sm mx-auto">
           <DialogHeader>
@@ -552,37 +438,26 @@ export default function Home() {
               Before adding funds, let's make sure you understand the basics of investing.
             </DialogDescription>
           </DialogHeader>
-          
           <div className="space-y-4 py-4">
             <Card className="border">
               <CardContent className="p-4">
                 <h4 className="font-semibold text-sm mb-2">Investment 101</h4>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Learn how much you should be investing based on your income and goals.
-                </p>
+                <p className="text-xs text-muted-foreground mb-3">Learn how much you should be investing based on your income and goals.</p>
                 <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="gap-1">
-                    <Sprout className="w-3 h-3" />
-                    Earn 30 seeds
-                  </Badge>
+                  <Badge variant="secondary" className="gap-1"><Sprout className="w-3 h-3" />Earn 30 seeds</Badge>
                   <span className="text-xs text-muted-foreground">5 min read</span>
                 </div>
               </CardContent>
             </Card>
-            
             <Button className="w-full" data-testid="button-start-investment-101">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Start Investment 101
+              <BookOpen className="w-4 h-4 mr-2" />Start Investment 101
             </Button>
-            
-            <p className="text-center text-xs text-muted-foreground">
-              Complete this module to unlock the ability to add funds
-            </p>
+            <p className="text-center text-xs text-muted-foreground">Complete this module to unlock the ability to add funds</p>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Professional Verification Quiz */}
+      {/* ── Professional Quiz ── */}
       <Dialog open={showProfessionalQuiz} onOpenChange={(open) => { if (!open) resetQuiz(); }}>
         <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
           {quizStep === 0 && (
@@ -596,51 +471,32 @@ export default function Home() {
                   Prove your investment knowledge to unlock Professional status and access advanced features.
                 </DialogDescription>
               </DialogHeader>
-              
               <div className="space-y-4 py-4">
                 <Card className="border bg-muted/50">
                   <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Target className="w-4 h-4 text-primary" />
+                    {[
+                      { icon: Target, title: "5 Questions", sub: "Multiple choice format" },
+                      { icon: CheckCircle2, title: "Pass Score: 80%", sub: "Get at least 4 out of 5 correct" },
+                      { icon: Award, title: "Professional Badge", sub: "Unlock advanced trading tools" },
+                    ].map(({ icon: Icon, title, sub }, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Icon className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{title}</p>
+                          <p className="text-xs text-muted-foreground">{sub}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-sm">5 Questions</p>
-                        <p className="text-xs text-muted-foreground">Multiple choice format</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <CheckCircle2 className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">Pass Score: 80%</p>
-                        <p className="text-xs text-muted-foreground">Get at least 4 out of 5 correct</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Award className="w-4 h-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">Professional Badge</p>
-                        <p className="text-xs text-muted-foreground">Unlock advanced trading tools</p>
-                      </div>
-                    </div>
+                    ))}
                   </CardContent>
                 </Card>
-                
-                <Button className="w-full" onClick={() => setQuizStep(1)} data-testid="button-start-quiz">
-                  Start Quiz
-                </Button>
-                
-                <p className="text-center text-xs text-muted-foreground">
-                  You can retake the quiz if you don't pass
-                </p>
+                <Button className="w-full" onClick={() => setQuizStep(1)} data-testid="button-start-quiz">Start Quiz</Button>
+                <p className="text-center text-xs text-muted-foreground">You can retake the quiz if you don't pass</p>
               </div>
             </>
           )}
-          
+
           {quizStep >= 1 && quizStep <= 5 && (
             <>
               <DialogHeader>
@@ -649,98 +505,46 @@ export default function Home() {
                   <span className="text-xs text-muted-foreground">{Math.round((quizStep / 5) * 100)}% complete</span>
                 </div>
                 <Progress value={(quizStep / 5) * 100} className="h-2 mb-4" />
-                <DialogTitle className="text-left text-base">
-                  {professionalQuizQuestions[quizStep - 1].question}
-                </DialogTitle>
+                <DialogTitle className="text-left text-base">{professionalQuizQuestions[quizStep - 1].question}</DialogTitle>
               </DialogHeader>
-              
               <div className="py-4">
-                <RadioGroup
-                  value={quizAnswers[quizStep] || ""}
-                  onValueChange={(value) => setQuizAnswers({ ...quizAnswers, [quizStep]: value })}
-                  className="space-y-3"
-                >
+                <RadioGroup value={quizAnswers[quizStep] || ""} onValueChange={(value) => setQuizAnswers({ ...quizAnswers, [quizStep]: value })} className="space-y-3">
                   {professionalQuizQuestions[quizStep - 1].options.map((option) => (
-                    <div 
-                      key={option.id} 
-                      className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                        quizAnswers[quizStep] === option.id 
-                          ? 'border-primary bg-primary/5' 
-                          : 'border-muted hover:border-muted-foreground/30'
-                      }`}
-                      onClick={() => setQuizAnswers({ ...quizAnswers, [quizStep]: option.id })}
-                    >
+                    <div key={option.id} className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${quizAnswers[quizStep] === option.id ? "border-primary bg-primary/5" : "border-muted hover:border-muted-foreground/30"}`} onClick={() => setQuizAnswers({ ...quizAnswers, [quizStep]: option.id })}>
                       <RadioGroupItem value={option.id} id={`q${quizStep}-${option.id}`} />
-                      <Label htmlFor={`q${quizStep}-${option.id}`} className="flex-1 cursor-pointer text-sm">
-                        {option.text}
-                      </Label>
+                      <Label htmlFor={`q${quizStep}-${option.id}`} className="flex-1 cursor-pointer text-sm">{option.text}</Label>
                     </div>
                   ))}
                 </RadioGroup>
               </div>
-              
               <div className="flex gap-3">
-                {quizStep > 1 && (
-                  <Button variant="outline" onClick={() => setQuizStep(quizStep - 1)} data-testid="button-quiz-back">
-                    Back
-                  </Button>
-                )}
-                {quizStep < 5 ? (
-                  <Button 
-                    className="flex-1" 
-                    disabled={!quizAnswers[quizStep]}
-                    onClick={() => setQuizStep(quizStep + 1)}
-                    data-testid="button-quiz-next"
-                  >
-                    Next
-                  </Button>
-                ) : (
-                  <Button 
-                    className="flex-1" 
-                    disabled={!quizAnswers[quizStep]}
-                    onClick={handleQuizSubmit}
-                    data-testid="button-quiz-submit"
-                  >
-                    Submit Quiz
-                  </Button>
-                )}
+                {quizStep > 1 && <Button variant="outline" onClick={() => setQuizStep(quizStep - 1)} data-testid="button-quiz-back">Back</Button>}
+                {quizStep < 5
+                  ? <Button className="flex-1" disabled={!quizAnswers[quizStep]} onClick={() => setQuizStep(quizStep + 1)} data-testid="button-quiz-next">Next</Button>
+                  : <Button className="flex-1" disabled={!quizAnswers[quizStep]} onClick={handleQuizSubmit} data-testid="button-quiz-submit">Submit Quiz</Button>
+                }
               </div>
             </>
           )}
-          
+
           {quizStep === 6 && (
             <>
               <DialogHeader>
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-3 ${
-                  calculateQuizScore() >= 4 
-                    ? 'bg-gradient-to-br from-green-400 to-green-600' 
-                    : 'bg-gradient-to-br from-orange-400 to-orange-600'
-                }`}>
-                  {calculateQuizScore() >= 4 ? (
-                    <CheckCircle2 className="w-10 h-10 text-white" />
-                  ) : (
-                    <XCircle className="w-10 h-10 text-white" />
-                  )}
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-3 ${calculateQuizScore() >= 4 ? "bg-gradient-to-br from-green-400 to-green-600" : "bg-gradient-to-br from-orange-400 to-orange-600"}`}>
+                  {calculateQuizScore() >= 4 ? <CheckCircle2 className="w-10 h-10 text-white" /> : <XCircle className="w-10 h-10 text-white" />}
                 </div>
-                <DialogTitle className="text-center">
-                  {calculateQuizScore() >= 4 ? "Congratulations!" : "Almost There!"}
-                </DialogTitle>
+                <DialogTitle className="text-center">{calculateQuizScore() >= 4 ? "Congratulations!" : "Almost There!"}</DialogTitle>
                 <DialogDescription className="text-center">
-                  {calculateQuizScore() >= 4 
-                    ? "You've proven your investment knowledge. Welcome to Professional status!" 
-                    : `You scored ${calculateQuizScore()}/5. You need at least 4 correct answers to pass.`
-                  }
+                  {calculateQuizScore() >= 4 ? "You've proven your investment knowledge. Welcome to Professional status!" : `You scored ${calculateQuizScore()}/5. You need at least 4 correct answers to pass.`}
                 </DialogDescription>
               </DialogHeader>
-              
               <div className="py-4 space-y-4">
-                <Card className={`border-2 ${calculateQuizScore() >= 4 ? 'border-green-500/30 bg-green-500/5' : 'border-orange-500/30 bg-orange-500/5'}`}>
+                <Card className={`border-2 ${calculateQuizScore() >= 4 ? "border-green-500/30 bg-green-500/5" : "border-orange-500/30 bg-orange-500/5"}`}>
                   <CardContent className="p-4 text-center">
                     <p className="text-3xl font-bold mb-1">{calculateQuizScore()}/5</p>
                     <p className="text-sm text-muted-foreground">Correct Answers</p>
                   </CardContent>
                 </Card>
-                
                 {calculateQuizScore() >= 4 ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
@@ -750,26 +554,14 @@ export default function Home() {
                         <p className="text-xs text-muted-foreground">Access advanced features</p>
                       </div>
                     </div>
-                    <Button className="w-full" onClick={resetQuiz} data-testid="button-quiz-done">
-                      Done
-                    </Button>
+                    <Button className="w-full" onClick={resetQuiz} data-testid="button-quiz-done">Done</Button>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground text-center">
-                      Don't worry! Review the learning modules to strengthen your knowledge, then try again.
-                    </p>
+                    <p className="text-sm text-muted-foreground text-center">Don't worry! Review the learning modules to strengthen your knowledge, then try again.</p>
                     <div className="flex gap-3">
-                      <Button variant="outline" className="flex-1" onClick={resetQuiz} data-testid="button-quiz-close">
-                        Close
-                      </Button>
-                      <Button 
-                        className="flex-1" 
-                        onClick={() => { setQuizStep(0); setQuizAnswers({}); }}
-                        data-testid="button-quiz-retry"
-                      >
-                        Try Again
-                      </Button>
+                      <Button variant="outline" className="flex-1" onClick={resetQuiz} data-testid="button-quiz-close">Close</Button>
+                      <Button className="flex-1" onClick={() => { setQuizStep(0); setQuizAnswers({}); }} data-testid="button-quiz-retry">Try Again</Button>
                     </div>
                   </div>
                 )}
@@ -779,13 +571,12 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      {/* Seeds Dashboard Sheet */}
+      {/* ── Seeds Dashboard Sheet ── */}
       <Sheet open={showSeedsDashboard} onOpenChange={setShowSeedsDashboard}>
         <SheetContent side="bottom" className="h-[80vh] rounded-t-2xl p-0 flex flex-col">
           <SheetHeader className="p-5 pb-3">
             <SheetTitle className="text-left text-lg">Your Seeds</SheetTitle>
           </SheetHeader>
-
           <div className="flex-1 overflow-y-auto p-5 pt-2 space-y-5">
             <div className="text-center py-4">
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
@@ -801,77 +592,63 @@ export default function Home() {
                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                   Seeds are Growtt's learning currency. You spend seeds to access investment modules, books, and features. As you progress through a module, you earn seeds back based on how much you complete.
                 </p>
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">100% complete</span>
-                    <span className="font-semibold text-green-600 dark:text-green-400">15% seeds back</span>
+                {[
+                  { pct: "100%", back: "15% seeds back" },
+                  { pct: "75%",  back: "11% seeds back" },
+                  { pct: "50%",  back: "7% seeds back"  },
+                  { pct: "25%",  back: "3% seeds back"  },
+                ].map(({ pct, back }) => (
+                  <div key={pct} className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{pct} complete</span>
+                    <span className="font-semibold text-green-600 dark:text-green-400">{back}</span>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">75% complete</span>
-                    <span className="font-semibold text-green-600 dark:text-green-400">11% seeds back</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">50% complete</span>
-                    <span className="font-semibold text-green-600 dark:text-green-400">7% seeds back</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">25% complete</span>
-                    <span className="font-semibold text-green-600 dark:text-green-400">3% seeds back</span>
-                  </div>
-                </div>
+                ))}
               </CardContent>
             </Card>
 
+            {/* ── Progress stats from user detail ── */}
             <div className="grid grid-cols-3 gap-3">
               <Card className="border">
                 <CardContent className="p-3 text-center">
-                  <p className="text-xs text-muted-foreground mb-1">Earned</p>
-                  <p className="font-bold text-green-600 dark:text-green-400" data-testid="text-seeds-earned">+180</p>
+                  <p className="text-xs text-muted-foreground mb-1">Lessons Done</p>
+                  <p className="font-bold text-green-600 dark:text-green-400" data-testid="text-seeds-earned">{lessonProgress}</p>
                 </CardContent>
               </Card>
               <Card className="border">
                 <CardContent className="p-3 text-center">
-                  <p className="text-xs text-muted-foreground mb-1">Used</p>
-                  <p className="font-bold text-red-600 dark:text-red-400" data-testid="text-seeds-used">-60</p>
+                  <p className="text-xs text-muted-foreground mb-1">Progress</p>
+                  <p className="font-bold" data-testid="text-seeds-used">{learnProgress}%</p>
                 </CardContent>
               </Card>
               <Card className="border">
                 <CardContent className="p-3 text-center">
-                  <p className="text-xs text-muted-foreground mb-1">Balance</p>
+                  <p className="text-xs text-muted-foreground mb-1">Seeds</p>
                   <p className="font-bold" data-testid="text-seeds-current">{userSeeds}</p>
                 </CardContent>
               </Card>
             </div>
 
+            {/* Seed transactions remain static — no transactions endpoint yet */}
             <section>
               <h4 className="font-semibold text-sm mb-3">Seed Transactions</h4>
               <div className="space-y-2">
                 {[
-                  { label: "Stocks Module — 100% complete", seeds: "+5", type: "earned" as const, icon: GraduationCap, time: "2 hours ago", detail: "15% of 30 seeds back" },
-                  { label: "Accessed Stocks Module", seeds: "-30", type: "spent" as const, icon: TrendingUp, time: "3 hours ago", detail: "Module access fee" },
-                  { label: "Crypto Module — 50% complete", seeds: "+3", type: "earned" as const, icon: GraduationCap, time: "Yesterday", detail: "7% of 40 seeds back" },
-                  { label: "Accessed Crypto Module", seeds: "-40", type: "spent" as const, icon: TrendingUp, time: "Yesterday", detail: "Module access fee" },
-                  { label: "Accessed 'Rich Dad Poor Dad'", seeds: "-25", type: "spent" as const, icon: BookOpen, time: "2 days ago", detail: "Book access fee" },
-                  { label: "Bonds Module — 75% complete", seeds: "+4", type: "earned" as const, icon: GraduationCap, time: "3 days ago", detail: "11% of 35 seeds back" },
-                  { label: "Accessed Bonds Module", seeds: "-35", type: "spent" as const, icon: TrendingUp, time: "3 days ago", detail: "Module access fee" },
-                  { label: "Referred a Friend", seeds: "+50", type: "earned" as const, icon: Users, time: "5 days ago", detail: "Referral bonus" },
-                  { label: "Bought 200 Seeds", seeds: "+200", type: "earned" as const, icon: Sprout, time: "1 week ago", detail: "Purchased" },
+                  { label: "Stocks Module — 100% complete", seeds: "+5",   type: "earned" as const, icon: GraduationCap, time: "2 hours ago",  detail: "15% of 30 seeds back" },
+                  { label: "Accessed Stocks Module",        seeds: "-30",  type: "spent"  as const, icon: TrendingUp,    time: "3 hours ago",  detail: "Module access fee"    },
+                  { label: "Crypto Module — 50% complete",  seeds: "+3",   type: "earned" as const, icon: GraduationCap, time: "Yesterday",    detail: "7% of 40 seeds back"  },
+                  { label: "Accessed Crypto Module",        seeds: "-40",  type: "spent"  as const, icon: TrendingUp,    time: "Yesterday",    detail: "Module access fee"    },
+                  { label: "Referred a Friend",             seeds: "+50",  type: "earned" as const, icon: Users,         time: "5 days ago",   detail: "Referral bonus"       },
+                  { label: "Bought 200 Seeds",              seeds: "+200", type: "earned" as const, icon: Sprout,        time: "1 week ago",   detail: "Purchased"            },
                 ].map((tx, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50" data-testid={`seed-transaction-${i}`}>
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      tx.type === "earned" ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30"
-                    }`}>
-                      <tx.icon className={`w-4 h-4 ${
-                        tx.type === "earned" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                      }`} />
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${tx.type === "earned" ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30"}`}>
+                      <tx.icon className={`w-4 h-4 ${tx.type === "earned" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{tx.label}</p>
                       <p className="text-xs text-muted-foreground">{tx.detail} · {tx.time}</p>
                     </div>
-                    <span className={`text-sm font-semibold flex-shrink-0 ${
-                      tx.type === "earned" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-                    }`}>
+                    <span className={`text-sm font-semibold flex-shrink-0 ${tx.type === "earned" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                       {tx.seeds}
                     </span>
                   </div>
@@ -882,14 +659,12 @@ export default function Home() {
 
           <div className="p-5 pt-3 border-t bg-background">
             <Button className="w-full" size="lg" data-testid="button-buy-seeds">
-              <Sprout className="w-5 h-5 mr-2" />
-              Buy Seeds
+              <Sprout className="w-5 h-5 mr-2" />Buy Seeds
             </Button>
           </div>
         </SheetContent>
       </Sheet>
 
-      {/* Bottom Navigation */}
       <BottomNav currentPage="home" />
     </div>
   );
