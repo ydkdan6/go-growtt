@@ -163,8 +163,10 @@ export default function News() {
           ))}
         </div>
 
+
+        <h2 className="flex justify-center items-center my-12">Coming Soon!</h2>
         {/* Featured Article */}
-        <Card className="border-0 bg-gradient-to-br from-primary via-primary/90 to-primary/70 overflow-hidden cursor-pointer hover-elevate" data-testid="featured-article">
+        {/* <Card className="border-0 bg-gradient-to-br from-primary via-primary/90 to-primary/70 overflow-hidden cursor-pointer hover-elevate" data-testid="featured-article">
           <CardContent className="p-5 relative">
             <div className="absolute top-3 right-3 flex items-center gap-2">
               {featuredArticle.trending && (
@@ -214,10 +216,10 @@ export default function News() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Latest News */}
-        <section>
+        {/* <section>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold">Latest News</h3>
             <Badge variant="secondary" className="gap-1">
@@ -275,10 +277,10 @@ export default function News() {
               </Card>
             ))}
           </div>
-        </section>
+        </section> */}
 
         {/* Market Quick Stats */}
-        <section>
+        {/* <section>
           <h3 className="font-semibold mb-3">Market Pulse</h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <Card className="border">
@@ -316,7 +318,7 @@ export default function News() {
               </CardContent>
             </Card>
           </div>
-        </section>
+        </section> */}
       </main>
 
       <BottomNav currentPage="news" />

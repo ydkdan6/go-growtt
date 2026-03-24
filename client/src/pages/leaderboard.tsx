@@ -355,8 +355,10 @@ export default function Leaderboard() {
           </Button>
         </div>
 
+
+        <h2 className="flex justify-center items-center my-12">Coming Soon!</h2>
         {/* Featured Trader Spotlight */}
-        {activeTab !== "all" && (
+        {/* {activeTab !== "all" && (
           <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
             <CardContent className="p-5">
               <div className="flex items-center gap-2 mb-4">
@@ -384,7 +386,7 @@ export default function Leaderboard() {
                 </div>
               </div>
 
-              {/* Stats Grid */}
+              {/* Stats Grid 
               <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="bg-background/60 rounded-xl p-3 text-center">
                   <p className="text-lg font-bold text-primary">
@@ -406,7 +408,7 @@ export default function Leaderboard() {
                 </div>
               </div>
 
-              {/* Strategy & Tip */}
+              {/* Strategy & Tip 
               <div className="space-y-3">
                 <div className="bg-background/60 rounded-xl p-3">
                   <div className="flex items-center gap-2 mb-1.5">
@@ -429,12 +431,12 @@ export default function Leaderboard() {
               </div>
             </CardContent>
           </Card>
-        )}
+        )} */}
 
         {/* Top 3 Podium */}
-        {activeTab === "all" && (
+        {/* {activeTab === "all" && (
           <div className="flex items-end justify-center gap-2 py-4">
-            {/* 2nd Place */}
+            {/* 2nd Place 
             <div 
               className="flex flex-col items-center cursor-pointer hover-elevate rounded-lg p-2"
               onClick={() => openTraderSheet(2, topTraders[1].name, topTraders[1].returnPct, topTraders[1].badge)}
@@ -458,7 +460,7 @@ export default function Leaderboard() {
               </div>
             </div>
             
-            {/* 1st Place */}
+            {/* 1st Place 
             <div 
               className="flex flex-col items-center -mt-4 cursor-pointer hover-elevate rounded-lg p-2"
               onClick={() => openTraderSheet(1, topTraders[0].name, topTraders[0].returnPct, topTraders[0].badge)}
@@ -482,7 +484,7 @@ export default function Leaderboard() {
               </div>
             </div>
             
-            {/* 3rd Place */}
+            {/* 3rd Place 
             <div 
               className="flex flex-col items-center cursor-pointer hover-elevate rounded-lg p-2"
               onClick={() => openTraderSheet(3, topTraders[2].name, topTraders[2].returnPct, topTraders[2].badge)}
@@ -506,10 +508,10 @@ export default function Leaderboard() {
               </div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* 1v1 Head to Head Battle */}
-        <section>
+        {/* <section>
           <div className="flex items-center gap-2 mb-3">
             <Swords className="w-5 h-5 text-primary" />
             <h3 className="font-semibold">{headToHead.title}</h3>
@@ -521,7 +523,7 @@ export default function Leaderboard() {
           <Card className="border-2 border-primary/20 bg-gradient-to-r from-red-500/5 via-transparent to-blue-500/5">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                {/* Trader 1 */}
+                {/* Trader 1 
                 <div 
                   className="flex-1 text-center cursor-pointer hover-elevate rounded-lg p-2"
                   onClick={() => openTraderSheet(5, headToHead.trader1.name, headToHead.trader1.returnPct, headToHead.trader1.badge)}
@@ -543,7 +545,7 @@ export default function Leaderboard() {
                   </div>
                 </div>
                 
-                {/* VS */}
+                {/* VS 
                 <div className="flex flex-col items-center gap-2">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
                     <span className="text-primary-foreground font-bold text-sm">VS</span>
@@ -551,7 +553,7 @@ export default function Leaderboard() {
                   <p className="text-xs text-muted-foreground">{headToHead.totalVotes} votes</p>
                 </div>
                 
-                {/* Trader 2 */}
+                {/* Trader 2 
                 <div 
                   className="flex-1 text-center cursor-pointer hover-elevate rounded-lg p-2"
                   onClick={() => openTraderSheet(6, headToHead.trader2.name, headToHead.trader2.returnPct, headToHead.trader2.badge)}
@@ -574,7 +576,7 @@ export default function Leaderboard() {
                 </div>
               </div>
               
-              {/* Vote Bar */}
+              {/* Vote Bar 
               <div className="mt-4">
                 <div className="flex h-3 rounded-full overflow-hidden bg-muted">
                   <div 
@@ -592,7 +594,7 @@ export default function Leaderboard() {
                 </div>
               </div>
               
-              {/* Vote Buttons */}
+              {/* Vote Buttons 
               <div className="grid grid-cols-2 gap-3 mt-4">
                 <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-950" data-testid="button-vote-trader1">
                   Vote {headToHead.trader1.name.split(" ")[0]}
@@ -603,10 +605,10 @@ export default function Leaderboard() {
               </div>
             </CardContent>
           </Card>
-        </section>
+        </section> */}
 
         {/* Leaderboard Table */}
-        <section>
+        {/* <section>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold">Top Traders</h3>
             <Badge variant="secondary" className="gap-1">
@@ -631,21 +633,21 @@ export default function Leaderboard() {
                     onClick={() => handleTraderClick(trader.rank)}
                     data-testid={`trader-name-${trader.rank}`}
                   >
-                    {/* Rank */}
+                    {/* Rank 
                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                       {getRankIcon(trader.rank) || (
                         <span className="text-sm font-bold text-muted-foreground">{trader.rank}</span>
                       )}
                     </div>
                     
-                    {/* Avatar */}
+                    {/* Avatar 
                     <Avatar className={`w-10 h-10 ${trader.rank <= 3 ? getAvatarColor(trader.rank) : 'bg-muted'}`}>
                       <AvatarFallback className={trader.rank <= 3 ? "text-white font-semibold" : "font-medium"}>
                         {trader.name.split(" ").map(n => n[0]).join("")}
                       </AvatarFallback>
                     </Avatar>
                     
-                    {/* Info */}
+                    {/* Info 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-sm truncate">{trader.name}</p>
@@ -684,7 +686,7 @@ export default function Leaderboard() {
                       </div>
                     </div>
                     
-                    {/* Return */}
+                    {/* Return 
                     <div className="text-right">
                       <p className="text-sm font-semibold text-green-600">+{trader.returnPct}%</p>
                       <p className="text-xs text-muted-foreground">return</p>
@@ -697,7 +699,7 @@ export default function Leaderboard() {
                     )}
                   </CardContent>
                   
-                  {/* Expanded Portfolio Breakdown */}
+                  {/* Expanded Portfolio Breakdown 
                   {isExpanded && (
                     <div className="px-3 pb-3 pt-0 border-t bg-muted/30">
                       <div className="pt-3">
@@ -706,7 +708,7 @@ export default function Leaderboard() {
                           <span className="text-sm font-medium">Portfolio Breakdown</span>
                         </div>
                         
-                        {/* Allocation Bar */}
+                        {/* Allocation Bar 
                         <div className="flex h-3 rounded-full overflow-hidden mb-3">
                           {portfolio.map((holding, idx) => (
                             <div
@@ -717,7 +719,7 @@ export default function Leaderboard() {
                           ))}
                         </div>
                         
-                        {/* Holdings List */}
+                        {/* Holdings List 
                         <div className="space-y-2">
                           {portfolio.map((holding, idx) => (
                             <div 
@@ -749,7 +751,7 @@ export default function Leaderboard() {
             })}
           </div>
           
-          {/* Show More Button */}
+          {/* Show More Button 
           {!showAll && (
             <Button 
               variant="outline" 
@@ -771,10 +773,10 @@ export default function Leaderboard() {
               Show Less
             </Button>
           )}
-        </section>
+        </section> */}
 
         {/* Your Rank CTA */}
-        <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
+        {/* <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
           <CardContent className="p-4 text-center">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
               <Target className="w-6 h-6 text-primary" />
@@ -787,11 +789,11 @@ export default function Leaderboard() {
               Start Learning
             </Button>
           </CardContent>
-        </Card>
+        </Card> */}
       </main>
 
       {/* Trader Portfolio Sheet */}
-      <Sheet open={!!sheetTrader} onOpenChange={(open) => !open && setSheetTrader(null)}>
+      {/* <Sheet open={!!sheetTrader} onOpenChange={(open) => !open && setSheetTrader(null)}>
         <SheetContent side="bottom" className="h-[70vh] rounded-t-2xl">
           {sheetTrader && (
             <>
@@ -820,7 +822,7 @@ export default function Leaderboard() {
                   <span className="font-medium">Portfolio Breakdown</span>
                 </div>
                 
-                {/* Allocation Bar */}
+                Allocation Bar 
                 <div className="flex h-4 rounded-full overflow-hidden">
                   {getTraderPortfolio(sheetTrader.rank).map((holding, idx) => (
                     <div
@@ -831,7 +833,7 @@ export default function Leaderboard() {
                   ))}
                 </div>
                 
-                {/* Legend */}
+                {/* Legend 
                 <div className="flex gap-4 text-xs">
                   <div className="flex items-center gap-1.5">
                     <div className="w-3 h-3 rounded-full bg-primary" />
@@ -847,7 +849,7 @@ export default function Leaderboard() {
                   </div>
                 </div>
                 
-                {/* Holdings List */}
+                {/* Holdings List 
                 <div className="space-y-2">
                   {getTraderPortfolio(sheetTrader.rank).map((holding, idx) => (
                     <div 
@@ -876,7 +878,7 @@ export default function Leaderboard() {
             </>
           )}
         </SheetContent>
-      </Sheet>
+      </Sheet> */}
 
       <BottomNav currentPage="home" />
     </div>
