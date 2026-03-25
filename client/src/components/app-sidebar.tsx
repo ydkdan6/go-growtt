@@ -65,7 +65,7 @@ export function AppSidebar({ currentPage }: AppSidebarProps) {
       <SidebarHeader className="p-4 border-b">
         <div className="flex items-center gap-3">
           <img
-            src="/src/assets/Growtt_Icon_Primary_1770990881558.jpg"
+            src="/Growtt_Icon_Primary_1770990881558.jpg"
             alt="Growtt"
             className="w-10 h-10 rounded-full object-cover"
           />

@@ -1,6 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from "axios";
 
-const BASE_URL = "https://www.api.growtt.com";
+const BASE_URL = "https://api.growtt.com";
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

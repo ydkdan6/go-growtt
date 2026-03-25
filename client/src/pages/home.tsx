@@ -175,10 +175,10 @@ export default function Home() {
         <div className="max-w-lg lg:max-w-4xl xl:max-w-6xl mx-auto px-4 lg:px-6 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             {avatarSrc ? (
-              <img src="/src/assets/Growtt_Icon_Primary_1770990881558.jpg" alt={displayName} className="w-8 h-8 rounded-full object-cover" />
+              <img src="/Growtt_Icon_Primary_1770990881558.jpg" alt={displayName} className="w-8 h-8 rounded-full object-cover" />
             ) : (
 <img
-            src="/src/assets/Growtt_Icon_Primary_1770990881558.jpg"
+            src="/Growtt_Icon_Primary_1770990881558.jpg"
             alt="Growtt"
             className="w-10 h-10 rounded-full object-cover"
           />
