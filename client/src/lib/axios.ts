@@ -54,7 +54,12 @@ apiClient.interceptors.response.use(
         console.error("Server error. Please try again later.");
       }
     } else if (error.request) {
-      console.error("Network error: No response received from server.");
+      console.error("Network error details:", {
+    message: error.message,
+    code: error.code,           // e.g. ERR_NETWORK, ECONNABORTED
+    url: error.config?.url,
+    baseURL: error.config?.baseURL,
+  });
     }
 
     return Promise.reject(error);
