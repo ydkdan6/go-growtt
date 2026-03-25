@@ -8,25 +8,17 @@ export const apiClient = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-  withCredentials: true, // needed for CSRF cookie handling
+  withCredentials: false, // needed for CSRF cookie handling
   timeout: 15000,
 });
 
 // ------- Request Interceptor -------
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Attach access token from localStorage if present
     const token = localStorage.getItem("access_token");
     if (token && config.headers) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
-
-    // Attach CSRF token from cookie if present
-    const csrfToken = getCsrfTokenFromCookie();
-    if (csrfToken && config.headers) {
-      config.headers["X-CSRFTOKEN"] = csrfToken;
-    }
-
     return config;
   },
   (error: AxiosError) => Promise.reject(error)
@@ -56,7 +48,7 @@ apiClient.interceptors.response.use(
     } else if (error.request) {
       console.error("Network error details:", {
     message: error.message,
-    code: error.code,           // e.g. ERR_NETWORK, ECONNABORTED
+    code: error.code,           
     url: error.config?.url,
     baseURL: error.config?.baseURL,
   });
