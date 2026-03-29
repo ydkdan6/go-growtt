@@ -273,3 +273,275 @@ export const adaptModule = (api: ApiModule): Module => ({
   locked: !api.status,
   pubDate: api.pub_date,
 });
+
+// ─── API Response Shape — GET /blog/blog/ ─────────────────────────────────────
+
+export interface ApiBlog {
+  id: string;
+  image_url: string | null;
+  title: string;
+  authors: string;
+  tag: string;
+  required_seed: string;
+  description: string;
+  views: string;
+  status: boolean;      // true = published / available
+  pub_date: string;
+}
+
+// ─── UI Shape ─────────────────────────────────────────────────────────────────
+
+export interface Blog {
+  id: string;
+  imageUrl: string | null;
+  title: string;
+  authors: string;
+  tag: string;
+  requiredSeed: number;
+  description: string;
+  views: number;
+  locked: boolean;      // derived: !status
+  pubDate: string;
+}
+
+// ─── Adapter ──────────────────────────────────────────────────────────────────
+
+export const adaptBlog = (api: ApiBlog): Blog => ({
+  id:           api.id,
+  imageUrl:     api.image_url,
+  title:        api.title,
+  authors:      api.authors,
+  tag:          api.tag,
+  requiredSeed: Number(api.required_seed) || 0,
+  description:  api.description,
+  views:        Number(api.views) || 0,
+  locked:       !api.status,
+  pubDate:      api.pub_date,
+});
+
+// ─── API Response Shape — GET /investment-asset/investment-asset/ ─────────────
+
+export interface ApiInvestmentAsset {
+  id: string;
+  category: string;
+  investment_icon: string | null;
+  investment_type: string | null;
+  about: string | null;
+  description: string | null;
+  risk_level: string | null;
+  tenure: string | null;
+  min_payment: string | null;
+  interest: string | null;
+  asset_name: string | null;
+  asset_name_code: string | null;
+  tags: string | null;
+  price_per_unit: string | null;
+  per_unit_name: string | null;
+  percent_growth: string | null;
+  market_cap: string | null;
+  daily_volume: string | null;
+  status: boolean;
+  pub_date: string;
+}
+
+// ─── UI Shape ─────────────────────────────────────────────────────────────────
+
+export interface InvestmentAsset {
+  id: string;
+  category: string;
+  investmentIcon: string | null;
+  investmentType: string | null;
+  about: string | null;
+  description: string | null;
+  riskLevel: string | null;
+  tenure: string | null;
+  minPayment: number | null;
+  interest: number | null;       // e.g. 12.5 (%)
+  assetName: string | null;
+  assetNameCode: string | null;  // ticker e.g. "BTC", "DANGCEM"
+  tags: string | null;
+  pricePerUnit: number | null;
+  perUnitName: string | null;    // e.g. "unit", "share", "coin"
+  percentGrowth: number | null;
+  marketCap: number | null;
+  dailyVolume: number | null;
+  locked: boolean;               // derived: !status
+  pubDate: string;
+}
+
+// ─── Adapter ──────────────────────────────────────────────────────────────────
+
+export const adaptInvestmentAsset = (api: ApiInvestmentAsset): InvestmentAsset => ({
+  id:             api.id,
+  category:       api.category,
+  investmentIcon: api.investment_icon,
+  investmentType: api.investment_type,
+  about:          api.about,
+  description:    api.description,
+  riskLevel:      api.risk_level,
+  tenure:         api.tenure,
+  minPayment:     api.min_payment    !== null ? Number(api.min_payment)    : null,
+  interest:       api.interest       !== null ? Number(api.interest)       : null,
+  assetName:      api.asset_name,
+  assetNameCode:  api.asset_name_code,
+  tags:           api.tags,
+  pricePerUnit:   api.price_per_unit !== null ? Number(api.price_per_unit) : null,
+  perUnitName:    api.per_unit_name,
+  percentGrowth:  api.percent_growth !== null ? Number(api.percent_growth) : null,
+  marketCap:      api.market_cap     !== null ? Number(api.market_cap)     : null,
+  dailyVolume:    api.daily_volume   !== null ? Number(api.daily_volume)   : null,
+  locked:         !api.status,
+  pubDate:        api.pub_date,
+});
+
+// ─── Sign Up ────────────────────────────────────────────────────────────────
+
+export interface SignUpPayload {
+  email: string;
+  password: string;
+  confirm_password: string;
+}
+
+export interface SignUpResponse {
+  message: string;
+  email?: string;
+  detail?: string;
+}
+
+// ─── Sign In ────────────────────────────────────────────────────────────────
+
+export interface SignInPayload {
+  email: string;
+  password: string;
+}
+
+// ✅ Sign-in returns ONLY token + id — fetch full user separately via useUserDetail
+export interface SignInResponse {
+  token: string;
+  id: string;
+}
+
+// ─── Verify ─────────────────────────────────────────────────────────────────
+
+export interface VerifyPayload {
+  otp: string;    // ✅ Django typically sends OTP field as "otp" not "token"
+  email: string;
+}
+
+export interface VerifyResponse {
+  message: string;
+  detail?: string;
+}
+
+// ─── Google Auth ─────────────────────────────────────────────────────────────
+
+export interface GoogleAuthPayload {
+  id_token: string; // Google ID token from Google Sign-In SDK
+}
+
+export interface GoogleAuthResponse {
+  access_token: string;
+  refresh_token: string;
+  user: {
+    id: string | number;
+    email: string;
+    is_verified?: boolean;
+    is_new_user?: boolean; // flag to redirect to onboarding if first sign-in
+    [key: string]: unknown;
+  };
+  detail?: string;
+}
+
+// ─── Onboarding ──────────────────────────────────────────────────────────────
+
+export interface OnboardingPayload {
+  financial_literacy_level: string;
+  investment_goal_3_5_years: string;
+  investment_strategy: string;
+  investment_risk_response: string;
+  initial_investment_amount: string;
+  typical_investment_ticket_size: string;
+  starting_investment_amount: string;
+  current_investment_method: string;
+  investment_management_method: string;
+  preferred_learning_content: string;
+  liquidity_preference: string;
+  platform_engagement_level: string;
+  age_group: string;
+}
+
+// Onboarding is submitted step by step — all fields are optional per step
+export type OnboardingStepPayload = Partial<OnboardingPayload>;
+
+export interface OnboardingResponse {
+  message: string;
+  user_id?: string | number;
+  detail?: string;
+}
+
+// ─── User Detail ─────────────────────────────────────────────────────────────
+
+export interface UserDetail {
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  date_joined: string;
+  full_name: string | null;
+  phone_number: string | null;
+  address: string | null;
+  wallet_balance: string | null;
+  demo_balance: string | null;
+  otp_code: string | null;
+  account_type: string | null;
+  // Onboarding fields
+  financial_literacy_level: string | null;
+  investment_goal_3_5_years: string | null;
+  investment_strategy: string | null;
+  investment_risk_response: string | null;
+  initial_investment_amount: string | null;
+  typical_investment_ticket_size: string | null;
+  starting_investment_amount: string | null;
+  current_investment_method: string | null;
+  investment_management_method: string | null;
+  preferred_learning_content: string | null;
+  liquidity_preference: string | null;
+  platform_engagement_level: string | null;
+  age_group: string | null;
+  // Progress fields
+  learn_progress: string | null;
+  module_progress: string | null;
+  lesson_progress: string | null;
+  duration_progress: string | null;
+  // Status flags
+  bookwarm_status: boolean | null;
+  onfire_status: boolean | null;
+  champion_status: boolean | null;
+  status: boolean | null;
+  // Avatar
+  image: string; // read-only URI
+}
+
+// ─── Shared Error Shape ─────────────────────────────────────────────────────
+
+export interface ApiErrorResponse {
+  detail?: string;
+  message?: string;
+  email?: string[];
+  password?: string[];
+  confirm_password?: string[];
+  non_field_errors?: string[];
+  [key: string]: unknown;
+}
+
+// ─── Portfolio ────────────────────────────────────────────────────────────────
+
+export interface PortfolioInvestment {
+  [key: string]: unknown; // shape TBD when backend populates investments array
+}
+
+export interface Portfolio {
+  portfolio_value: number;
+  investments: PortfolioInvestment[];
+}

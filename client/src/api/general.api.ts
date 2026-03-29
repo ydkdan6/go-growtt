@@ -2,6 +2,8 @@ import { apiClient } from "../lib/axios";
 import { ApiBook } from "../types/general.types";
 import { ApiLesson } from "../types/general.types";
 import { ApiModule } from "../types/general.types";
+import { ApiBlog } from "../types/general.types";
+import { ApiInvestmentAsset } from "../types/general.types";
 import type {
   SignUpPayload,
   SignUpResponse,
@@ -137,5 +139,30 @@ export const getLessonsApi = async (): Promise<ApiLesson[]> => {
 
 export const getModulesApi = async (): Promise<ApiModule[]> => {
   const { data } = await apiClient.get<ApiModule[]>("/learn/modules/");
+  return data;
+};
+
+
+//Blog ApI
+
+export const getBlogsApi = async (): Promise<ApiBlog[]> => {
+  const { data } = await apiClient.get<ApiBlog[]>("/blog/blog/");
+  return data;
+};
+
+export const getBlogByIdApi = async (id: string): Promise<ApiBlog> => {
+  const { data } = await apiClient.get<ApiBlog>(`/blog/blog/${id}/`);
+  return data;
+};
+
+//get investment assets
+
+export const getInvestmentAssetsApi = async (): Promise<ApiInvestmentAsset[]> => {
+  const { data } = await apiClient.get<ApiInvestmentAsset[]>("/investment-asset/investment-asset/");
+  return data;
+};
+
+export const getInvestmentAssetByIdApi = async (id: string): Promise<ApiInvestmentAsset> => {
+  const { data } = await apiClient.get<ApiInvestmentAsset>(`/investment-asset/investment-asset/${id}/`);
   return data;
 };

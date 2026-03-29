@@ -26,3 +26,4 @@ export const userKeys = {
   detail: (userId: string | number) =>
     [...userKeys.all, "detail", String(userId)] as const,
 };
+
