@@ -16,7 +16,7 @@ const AuthButton = forwardRef<HTMLButtonElement, AuthButtonProps>(
           "focus:outline-none focus:ring-2 focus:ring-offset-2",
           variant === "primary"
             ? "bg-[#006666] text-brand-light border border-[rgba(255,255,255,0.2)] hover:bg-[#006666]"
-            : "bg-transparent text-brand-dark border border-[rgba(3,7,18,0.2)] hover:bg-gray-50",
+            : "bg-transparent text-[rgba(3,7,18,0.8)] border border-[rgba(3,7,18,0.2)] hover:bg-gray-50",
           fullWidth && "w-full",
           props.disabled && "opacity-50 cursor-not-allowed",
           className

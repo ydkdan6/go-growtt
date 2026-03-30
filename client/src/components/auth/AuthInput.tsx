@@ -14,7 +14,7 @@ const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
 
     return (
       <div className="flex flex-col gap-2 w-full">
-        <label className="text-brand-dark text-lg leading-[150%]">
+        <label className="text-[rgba(3,7,18,0.8)] text-lg leading-[150%]">
           {label}
         </label>
         <div className="relative">

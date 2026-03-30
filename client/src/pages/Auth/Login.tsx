@@ -80,7 +80,7 @@ export default function Login() {
         </div>
 
         <div className="flex flex-col gap-4 mb-12">
-          <h2 className="text-brand-dark text-xl leading-[130%] tracking-[-0.32px]">Welcome Back!</h2>
+          <h2 className="text-black text-xl leading-[130%] tracking-[-0.32px]">Welcome Back!</h2>
           <p className="text-[rgba(3,7,18,0.8)] text-base leading-[150%]">Login to continue your journey with Growtt.</p>
         </div>
 
