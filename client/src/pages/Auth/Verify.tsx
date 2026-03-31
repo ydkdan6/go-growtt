@@ -17,7 +17,7 @@ export default function Verify() {
   const { toast } = useToast();
 
   // ✅ Read email passed from SignUp via wouter history state
-  const email = (window.history.state?.email as string) ?? "";
+  const email = (window.history.state?.email as string) || sessionStorage.getItem("signup_email") || "";
 
   const [code, setCode] = useState<string[]>(EMPTY_CODE);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -109,19 +109,19 @@ export default function Verify() {
         <button
           type="button"
           onClick={() => navigate("/")}
-          className="mb-8 w-6 h-6 text-brand-dark hover:opacity-70 transition-opacity"
+          className="mb-8 w-6 h-6 text-[rgba(3,7,18,0.8)] hover:opacity-70 transition-opacity"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
 
         <div className="flex flex-col gap-4 mb-12">
-          <h2 className="text-brand-dark text-[32px] leading-[130%] tracking-[-0.32px]">
+          <h2 className="text-[rgba(3,7,18,0.8)] text-[32px] leading-[130%] tracking-[-0.32px]">
             Enter confirmation code
           </h2>
           {/* ✅ Correctly says 5-digit */}
           <p className="text-[rgba(3,7,18,0.8)] text-base leading-[150%]">
             A 5-digit code has been sent to{" "}
-            <span className="font-medium text-brand-dark">
+            <span className="font-medium text-[rgba(3,7,18,0.8)]">
               {email || "your email"}
             </span>
             . Please enter the code below.
@@ -195,7 +195,7 @@ export default function Verify() {
               <div className="p-6 sm:p-8 flex flex-col items-center gap-6">
                 <div className="flex flex-col items-center gap-3 w-full text-center">
                   <img src="/images/v.png" alt="Email verified" className="w-[90px] h-[90px] object-cover" />
-                  <h3 className="text-brand-dark text-2xl sm:text-[32px] font-semibold leading-tight tracking-tight">
+                  <h3 className="text-[rgba(3,7,18,0.8)] text-2xl sm:text-[32px] font-semibold leading-tight tracking-tight">
                     Email verified
                   </h3>
                   <p className="text-[rgba(3,7,18,0.8)] text-sm sm:text-base">Your investment journey awaits.</p>

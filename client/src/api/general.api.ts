@@ -56,6 +56,7 @@ export const signInApi = async (payload: SignInPayload): Promise<SignInResponse>
 
 // ─── Verify ──────────────────────────────────────────────────────────────────
 export const verifyApi = async (payload: VerifyPayload): Promise<VerifyResponse> => {
+  try {
   const { data } = await apiClient.post<VerifyResponse>(
     AUTH_ENDPOINTS.VERIFY,
     payload
@@ -73,6 +74,11 @@ export const verifyApi = async (payload: VerifyPayload): Promise<VerifyResponse>
   }
 
   return data;
+
+} catch (err: any) {
+    console.log("verify error response:", err.response?.data); 
+    throw err;
+  }
 };
 
 // ─── Google Auth ──────────────────────────────────────────────────────────────

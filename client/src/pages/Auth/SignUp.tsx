@@ -46,6 +46,7 @@ export default function SignUp() {
       // ✅ Store email in sessionStorage — wouter doesn't support navigate state
       sessionStorage.setItem("signup_email", email);
       toast({ title: "Account created!", description: data.message });
+      window.history.pushState({ email }, "", "/verify");
       navigate("/verify");
     },
     onError: (msg) => {
@@ -125,7 +126,7 @@ export default function SignUp() {
 
         {/* ── Heading ── */}
         <div className="flex flex-col gap-4 mb-8">
-          <h2 className="text-brand-dark text-xl leading-[130%] tracking-[-0.32px]">Get Started Today</h2>
+          <h2 className="text-[rgba(3,7,18,0.8)] text-xl leading-[130%] tracking-[-0.32px]">Get Started Today</h2>
           <p className="text-[rgba(3,7,18,0.8)] text-base leading-[150%]">Enter your details to get started.</p>
         </div>
 
@@ -259,7 +260,7 @@ export default function SignUp() {
               <button
                 type="button"
                 onClick={() => setAgreed(!agreed)}
-                className="w-[18px] h-[18px] border border-brand-dark flex items-center justify-center flex-shrink-0"
+                className="w-[18px] h-[18px] border border-[rgba(3,7,18,0.8)] flex items-center justify-center flex-shrink-0"
                 style={{ backgroundColor: agreed ? "#0D0300" : "transparent" }}
                 aria-checked={agreed}
                 role="checkbox"
@@ -267,7 +268,7 @@ export default function SignUp() {
                 {agreed && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
               </button>
             </div>
-            <p className="text-brand-dark text-base leading-[150%]">
+            <p className="text-[rgba(3,7,18,0.8)] text-base leading-[150%]">
               I have read, understood, and agree to and all other terms & Customer Agreement.
             </p>
           </div>
