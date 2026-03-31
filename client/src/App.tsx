@@ -13,6 +13,7 @@ import NotFound from "./pages/not-found";
 import Home from "./pages/home";
 import Course from "./pages/course";
 import Learn from "./pages/learn";
+import LessonDetail from "./pages/LessonDetail";
 import Invest from "./pages/invest";
 import AssetListing from "./pages/asset-listing";
 import Profile from "./pages/profile";
@@ -92,6 +93,7 @@ function Router() {
       <Route path="/dashboard">{() => <ProtectedRoute component={Home} />}</Route>
       <Route path="/course/:id">{() => <ProtectedRoute component={Course} />}</Route>
       <Route path="/learn">{() => <ProtectedRoute component={Learn} />}</Route>
+      <Route path="/lesson/:id">{() => <ProtectedRoute component={LessonDetail} />}</Route>
       <Route path="/invest">{() => <ProtectedRoute component={Invest} />}</Route>
       <Route path="/invest/:category">{() => <ProtectedRoute component={AssetListing} />}</Route>
       <Route path="/profile">{() => <ProtectedRoute component={Profile} />}</Route>

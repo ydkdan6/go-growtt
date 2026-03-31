@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getLessonsApi } from "@/api/general.api";
+import { getLessonByIdApi } from "@/api/general.api";
 import { adaptLesson } from "@/types/general.types";
 import type { Lesson } from "@/types/general.types";
 import { parseApiError } from "@/utils/parseApiError";
@@ -33,6 +34,23 @@ export const useLessons = () => {
     },
     staleTime: 1000 * 60 * 10,  // 10 min
     gcTime: 1000 * 60 * 30,     // 30 min
+  });
+};
+
+export const useLessonById = (id: string) => {
+  return useQuery<Lesson, string>({
+    queryKey: [...lessonKeys.all, "detail", id],
+    queryFn: async () => {
+      try {
+        const raw = await getLessonByIdApi(id);
+        return adaptLesson(raw);
+      } catch (err) {
+        throw parseApiError(err);
+      }
+    },
+    enabled: !!id,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 30,
   });
 };
 

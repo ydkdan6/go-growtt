@@ -194,6 +194,7 @@ export default function Course({ params }: { params: { id: string } }) {
                 <Card
                   key={lesson.id}
                   className={`border ${lesson.locked ? "opacity-60" : "hover-elevate cursor-pointer"}`}
+                  onClick={() => !lesson.locked && setLocation(`/lesson/${lesson.id}`)}
                   data-testid={`lesson-${index}`}
                 >
                   <CardContent className="p-4 flex items-center gap-4">

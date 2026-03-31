@@ -165,10 +165,10 @@ export const getModulesApi = async (): Promise<ApiModule[]> => {
 };
 
 
-//get specific module
+//get specific lesson
 
-export const getModuleByIdApi = async (id: string): Promise<ApiModule> => {
-  const { data } = await apiClient.get<ApiModule>(`/learn/lessons/${id}/`);
+export const getLessonByIdApi = async (id: string): Promise<ApiLesson> => {
+  const { data } = await apiClient.get<ApiLesson>(`/learn/lessons/${id}/`);
   return data;
 };
 
