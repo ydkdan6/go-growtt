@@ -45,6 +45,7 @@ export default function SignUp() {
     onSuccess: (data) => {
       // ✅ Store email in sessionStorage — wouter doesn't support navigate state
       sessionStorage.setItem("signup_email", email);
+      sessionStorage.setItem("verify_source", "signup");
       toast({ title: "Account created!", description: data.message });
       window.history.pushState({ email }, "", "/verify");
       navigate("/verify");

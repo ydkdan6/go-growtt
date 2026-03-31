@@ -25,6 +25,8 @@ import GrowttAI from "./pages/growtt-ai";
 import Login from "./pages/Auth/Login";
 import SignUp from "./pages/Auth/SignUp";
 import Verify from "./pages/Auth/Verify";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+import ResetPassword from "./pages/Auth/ResetPassword";
 
 // Onboarding Imports
 import OnboardingInitial from "./pages/Onboarding/Onboarding";
@@ -67,6 +69,8 @@ function Router() {
       <Route path="/" component={Login} />
       <Route path="/signup" component={SignUp} />
       <Route path="/verify" component={Verify} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
 
       {/* ── Protected: Onboarding ── */}
       <Route path="/onboarding">{() => <ProtectedRoute component={OnboardingInitial} />}</Route>
@@ -106,7 +110,7 @@ function AppLayout() {
 
   const isOnboardingRoute = location.toLowerCase().startsWith("/onboarding");
   const showSidebar =
-    !isOnboardingRoute && !["/", "/signup", "/verify"].includes(location);
+    !isOnboardingRoute && !["/", "/signup", "/verify", "/forgot-password", "/reset-password"].includes(location);
 
   const getCurrentPage = () => {
     if (location === "/") return "login";

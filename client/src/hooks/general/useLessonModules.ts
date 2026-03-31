@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getModulesApi } from "@/api/general.api";
+import { getModuleByIdApi } from "@/api/general.api";
 import { adaptModule } from "@/types/general.types";
 import type { Module } from "@/types/general.types";
 import { parseApiError } from "@/utils/parseApiError";
@@ -58,9 +59,18 @@ export const useModulesByTrack = (track: string) => {
  *   const { data: module, isLoading } = useModuleById("d6a624b5-...");
  */
 export const useModuleById = (id: string) => {
-  const query = useModules();
-  return {
-    ...query,
-    data: (query.data ?? []).find((m) => m.id === id),
-  };
+  return useQuery<Module, string>({
+    queryKey: [...moduleKeys.all, "detail", id],
+    queryFn: async () => {
+      try {
+        const raw = await getModuleByIdApi(id);
+        return adaptModule(raw);
+      } catch (err) {
+        throw parseApiError(err);
+      }
+    },
+    enabled: !!id,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 30,
+  });
 };

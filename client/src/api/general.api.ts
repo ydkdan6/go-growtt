@@ -54,6 +54,22 @@ export const signInApi = async (payload: SignInPayload): Promise<SignInResponse>
   return data;
 };
 
+// Forgotten password and Verify Otp for password
+
+export const forgotPasswordApi = async (email: string): Promise<{ message: string }> => {
+  const { data } = await apiClient.post("/custom-user/forgot-password/", { email });
+  return data;
+};
+
+export const resetPasswordApi = async (payload: {
+  otp_code: string;
+  password: string;
+  email: string;
+}): Promise<{ message: string }> => {
+  const { data } = await apiClient.post("/custom-user/reset-password/", payload);
+  return data;
+};
+
 // ─── Verify ──────────────────────────────────────────────────────────────────
 export const verifyApi = async (payload: VerifyPayload): Promise<VerifyResponse> => {
   try {
@@ -149,6 +165,13 @@ export const getModulesApi = async (): Promise<ApiModule[]> => {
 };
 
 
+//get specific module
+
+export const getModuleByIdApi = async (id: string): Promise<ApiModule> => {
+  const { data } = await apiClient.get<ApiModule>(`/learn/lessons/${id}/`);
+  return data;
+};
+
 //Blog ApI
 
 export const getBlogsApi = async (): Promise<ApiBlog[]> => {
@@ -172,3 +195,4 @@ export const getInvestmentAssetByIdApi = async (id: string): Promise<ApiInvestme
   const { data } = await apiClient.get<ApiInvestmentAsset>(`/investment-asset/investment-asset/${id}/`);
   return data;
 };
+

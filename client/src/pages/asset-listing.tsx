@@ -213,18 +213,18 @@ export default function AssetListing({ params }: { params?: { category?: string 
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3 mb-3">
                       {/* Icon — use investmentIcon from API if available, else fallback */}
-                      {asset.investmentIcon ? (
-                        <img src={asset.investmentIcon} alt={ticker} className={`w-10 h-10 rounded-xl object-cover flex-shrink-0`} />
-                      ) : (
-                        <div className={`w-10 h-10 rounded-xl ${style.color} flex items-center justify-center flex-shrink-0 relative`}>
-                          <span className="text-white text-xs font-bold">{ticker.slice(0, 3)}</span>
-                          {asset.locked && (
-                            <div className="absolute inset-0 rounded-xl bg-background/60 flex items-center justify-center">
-                              <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      <div className={`w-10 h-10 rounded-xl ${style.bgColor} flex items-center justify-center flex-shrink-0 relative`}>
+  {asset.investmentIcon ? (
+    <i className={`${asset.investmentIcon} text-lg ${style.iconColor}`} />
+  ) : (
+    <span className="text-xs font-bold">{ticker.slice(0, 3)}</span>
+  )}
+  {asset.locked && (
+    <div className="absolute inset-0 rounded-xl bg-background/60 flex items-center justify-center">
+      <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+    </div>
+  )}
+</div>
 
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{asset.assetName ?? "—"}</p>
@@ -275,11 +275,15 @@ export default function AssetListing({ params }: { params?: { category?: string 
             <div className="flex flex-col h-full">
               <SheetHeader className="p-5 pb-3">
                 <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-xl ${style.color} flex items-center justify-center flex-shrink-0`}>
-                    <span className="text-white text-sm font-bold">
-                      {(selectedAsset.assetNameCode ?? selectedAsset.assetName ?? "—").slice(0, 3)}
-                    </span>
-                  </div>
+                  <div className={`w-12 h-12 rounded-xl ${style.bgColor} flex items-center justify-center flex-shrink-0`}>
+  {selectedAsset.investmentIcon ? (
+    <i className={`${selectedAsset.investmentIcon} text-xl ${style.iconColor}`} />
+  ) : (
+    <span className={`text-sm font-bold ${style.iconColor}`}>
+      {(selectedAsset.assetNameCode ?? selectedAsset.assetName ?? "—").slice(0, 3)}
+    </span>
+  )}
+</div>
                   <div className="flex-1">
                     <SheetTitle className="text-left text-lg">{selectedAsset.assetName ?? "Asset"}</SheetTitle>
                     <p className="text-sm text-muted-foreground">{selectedAsset.assetNameCode ?? selectedAsset.category}</p>
