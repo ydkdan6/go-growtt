@@ -212,7 +212,7 @@ export const updateInvestmentAssetApi = async (
   id: string,
   payload: UpdateInvestmentAssetPayload
 ): Promise<ApiInvestmentAsset> => {
-  const { data } = await apiClient.patch<ApiInvestmentAsset>(
+  const { data } = await apiClient.put<ApiInvestmentAsset>(
     `/investment-asset/investment-asset/${id}/`,
     payload
   );
