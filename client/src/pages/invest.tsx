@@ -388,7 +388,7 @@ export default function Invest() {
                         <div className="flex items-center gap-4 mb-3">
                           <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center relative flex-shrink-0`}>
                             {asset.investmentIcon
-                              ? <img src={asset.investmentIcon} alt={name} className="w-8 h-8 rounded-lg object-cover" />
+                              ? <Icon className="w-6 h-6 text-white rounded-lg object-cover" />
                               : <Icon className="w-6 h-6 text-white" />
                             }
                             {asset.locked && (
