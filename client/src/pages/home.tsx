@@ -157,7 +157,7 @@ export default function Home() {
     setShowProfessionalQuiz(false);
   };
 
-  const navigateToCourse = (moduleId: string) => setLocation(`/course/${moduleId}`);
+  // const navigateToCourse = (moduleId: string) => setLocation(`/course/${moduleId}`);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -290,7 +290,7 @@ export default function Home() {
               <Sparkles className="w-5 h-5" />
               <span className="text-xs lg:text-sm font-medium">Growtt AI</span>
             </Button>
-            <Button variant="outline" className="flex-1 h-auto py-3 lg:py-4 flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-start bg-primary border-0 text-white hover:bg-growtt-portfolio/90" onClick={() => modules[0] && navigateToCourse(modules[0].id)} data-testid="button-portfolio">
+            <Button variant="outline" className="flex-1 h-auto py-3 lg:py-4 flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-start bg-primary border-0 text-white hover:bg-growtt-portfolio/90" onClick={() => setLocation("/learn")} data-testid="button-portfolio">
               <BarChart3 className="w-5 h-5" />
               <span className="text-xs lg:text-sm font-medium">Portfolio</span>
             </Button>
@@ -341,7 +341,7 @@ export default function Home() {
                   const { icon: Icon, color, iconColor } = getModuleIcon(module.title);
                   const lessonCount = module.lessons.length || module.lessonCount;
                   return (
-                    <Card key={module.id} className="border hover-elevate cursor-pointer" onClick={() => navigateToCourse(module.id)} data-testid={`category-${module.id}`}>
+                    <Card key={module.id} className="border hover-elevate cursor-pointer" onClick={() => setLocation("/learn")} data-testid={`category-${module.id}`}>
                       <CardContent className="p-4">
                         <div className={`w-11 h-11 rounded-xl ${color} flex items-center justify-center mb-3 relative`}>
                           <Icon className={`w-5 h-5 ${iconColor}`} />

@@ -1,9 +1,4 @@
 import { apiClient } from "../lib/axios";
-import { ApiBook } from "../types/general.types";
-import { ApiLesson } from "../types/general.types";
-import { ApiModule } from "../types/general.types";
-import { ApiBlog } from "../types/general.types";
-import { ApiInvestmentAsset } from "../types/general.types";
 import type {
   SignUpPayload,
   SignUpResponse,
@@ -16,6 +11,13 @@ import type {
   OnboardingStepPayload,
   OnboardingResponse,
   UserDetail,
+  Portfolio,
+  ApiBook,
+  ApiLesson,
+  ApiModule,
+  ApiBlog,
+  ApiInvestmentAsset,
+  UpdateInvestmentAssetPayload,
 } from "../types/general.types";
 
 const AUTH_ENDPOINTS = {
@@ -184,6 +186,16 @@ export const getBlogByIdApi = async (id: string): Promise<ApiBlog> => {
   return data;
 };
 
+// ─── Get Portfolio (GET) ──────────────────────────────────────────────────────
+export const getPortfolioApi = async (
+  userId: string | number
+): Promise<Portfolio> => {
+  const { data } = await apiClient.get<Portfolio>(
+    `/custom-user/get-investments/${userId}/`
+  );
+  return data;
+};
+
 //get investment assets
 
 export const getInvestmentAssetsApi = async (): Promise<ApiInvestmentAsset[]> => {
@@ -193,6 +205,17 @@ export const getInvestmentAssetsApi = async (): Promise<ApiInvestmentAsset[]> =>
 
 export const getInvestmentAssetByIdApi = async (id: string): Promise<ApiInvestmentAsset> => {
   const { data } = await apiClient.get<ApiInvestmentAsset>(`/investment-asset/investment-asset/${id}/`);
+  return data;
+};
+
+export const updateInvestmentAssetApi = async (
+  id: string,
+  payload: UpdateInvestmentAssetPayload
+): Promise<ApiInvestmentAsset> => {
+  const { data } = await apiClient.patch<ApiInvestmentAsset>(
+    `/investment-asset/investment-asset/${id}/`,
+    payload
+  );
   return data;
 };
 

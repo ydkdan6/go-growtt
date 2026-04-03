@@ -1,97 +1,211 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { Input } from "../components/ui/input";
 import { ThemeToggle } from "../components/theme-toggle";
 import { BottomNav } from "../components/bottom-nav";
-import {
-  Sheet, SheetContent, SheetHeader, SheetTitle,
-} from "../components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../components/ui/sheet";
 import {
   TrendingUp, Bitcoin, Building2, Rocket, Sprout, Lock, ChevronRight,
   Wallet, PieChart, ArrowUpRight, ArrowDownRight, LineChart, Landmark,
   FileText, Users, DollarSign, Banknote, Heart, BarChart3, Gem,
-  PlayCircle, Shield, Clock, AlertCircle, type LucideIcon,
+  PlayCircle, Shield, Clock, AlertCircle, CheckCircle2, PartyPopper,
+  RefreshCw, type LucideIcon,
 } from "lucide-react";
 import { useInvestmentAssets } from "@/hooks/general/useInvestmentsassets";
+import { usePortfolio } from "@/hooks/general/usePortfolio";
+import { useInvestmentPurchase, type PurchaseInput } from "@/hooks/general/useInvestmentPurchase";
 import type { InvestmentAsset } from "@/types/general.types";
 
-// ─── Static market ticker data (no market data endpoint yet) ──────────────────
-const marketData = [
-  { name: "NGX ASI",    value: "98,432",  change: "+1.24%", positive: true  },
-  { name: "BTC/NGN",    value: "₦152.4M", change: "+2.87%", positive: true  },
-  { name: "USD/NGN",    value: "₦1,520",  change: "-0.3%",  positive: false },
-  { name: "T-Bill Rate",value: "18.5%",   change: "+0.2%",  positive: true  },
-];
+// ─── CoinGecko free API — real-time crypto + market data ─────────────────────
+const COINGECKO_URL =
+  "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana&vs_currencies=ngn&include_24hr_change=true";
 
-// ─── Icon/colour by category ──────────────────────────────────────────────────
-const getCategoryStyle = (category: string): {
-  icon: LucideIcon; color: string;
-} => {
+interface CryptoPrice {
+  ngn: number;
+  ngn_24h_change: number;
+}
+
+interface MarketPrices {
+  bitcoin?: CryptoPrice;
+  ethereum?: CryptoPrice;
+  solana?: CryptoPrice;
+}
+
+const useMarketPrices = () => {
+  const [prices, setPrices] = useState<MarketPrices>({});
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const fetch_ = useCallback(async () => {
+    try {
+      const res = await fetch(COINGECKO_URL);
+      const data = await res.json();
+      setPrices(data);
+      setLastUpdated(new Date());
+    } catch {
+      // keep previous values on error
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetch_();
+    const id = setInterval(fetch_, 60_000); // refresh every 60s
+    return () => clearInterval(id);
+  }, [fetch_]);
+
+  return { prices, loading, lastUpdated, refresh: fetch_ };
+};
+
+const formatNGN = (val: number) => {
+  if (val >= 1_000_000_000) return `₦${(val / 1_000_000_000).toFixed(2)}B`;
+  if (val >= 1_000_000)     return `₦${(val / 1_000_000).toFixed(2)}M`;
+  if (val >= 1_000)         return `₦${(val / 1_000).toFixed(1)}K`;
+  return `₦${val.toLocaleString()}`;
+};
+
+// ─── Icon/colour mapping ──────────────────────────────────────────────────────
+const getCategoryStyle = (category: string): { icon: LucideIcon; color: string } => {
   const c = (category ?? "").toLowerCase();
-  if (c.includes("stock"))                   return { icon: TrendingUp,  color: "bg-blue-500"    };
-  if (c.includes("crypto"))                  return { icon: Bitcoin,     color: "bg-orange-500"  };
-  if (c.includes("real") || c.includes("estate") || c.includes("property")) return { icon: Building2, color: "bg-emerald-500" };
-  if (c.includes("treasury"))                return { icon: Landmark,    color: "bg-sky-500"     };
-  if (c.includes("bond") || c.includes("fgn")) return { icon: Landmark,  color: "bg-teal-600"   };
+  if (c.includes("stock"))                       return { icon: TrendingUp, color: "bg-blue-500"    };
+  if (c.includes("crypto"))                      return { icon: Bitcoin,    color: "bg-orange-500"  };
+  if (c.includes("real") || c.includes("property")) return { icon: Building2, color: "bg-emerald-500" };
+  if (c.includes("treasury"))                    return { icon: Landmark,   color: "bg-sky-500"     };
+  if (c.includes("bond") || c.includes("fgn"))   return { icon: Landmark,   color: "bg-teal-600"    };
   if (c.includes("commercial") || c.includes("paper")) return { icon: FileText, color: "bg-slate-600" };
-  if (c.includes("gold"))                    return { icon: Gem,         color: "bg-yellow-500"  };
-  if (c.includes("oil") || c.includes("crude")) return { icon: Gem,      color: "bg-stone-700"   };
-  if (c.includes("agri") || c.includes("farm")) return { icon: Sprout,   color: "bg-lime-600"    };
-  if (c.includes("club"))                    return { icon: Users,       color: "bg-rose-500"    };
-  if (c.includes("dollar"))                  return { icon: DollarSign,  color: "bg-green-600"   };
-  if (c.includes("naira"))                   return { icon: Banknote,    color: "bg-primary"     };
-  if (c.includes("equity"))                  return { icon: BarChart3,   color: "bg-indigo-500"  };
-  if (c.includes("female") || c.includes("women")) return { icon: Heart, color: "bg-pink-500"   };
-  if (c.includes("angel"))                   return { icon: Rocket,      color: "bg-purple-600"  };
+  if (c.includes("gold"))                        return { icon: Gem,        color: "bg-yellow-500"  };
+  if (c.includes("oil") || c.includes("crude"))  return { icon: Gem,        color: "bg-stone-700"   };
+  if (c.includes("agri") || c.includes("farm"))  return { icon: Sprout,     color: "bg-lime-600"    };
+  if (c.includes("club"))                        return { icon: Users,       color: "bg-rose-500"    };
+  if (c.includes("dollar"))                      return { icon: DollarSign,  color: "bg-green-600"   };
+  if (c.includes("naira"))                       return { icon: Banknote,    color: "bg-primary"     };
+  if (c.includes("equity"))                      return { icon: BarChart3,   color: "bg-indigo-500"  };
+  if (c.includes("female") || c.includes("women")) return { icon: Heart,    color: "bg-pink-500"    };
+  if (c.includes("angel"))                       return { icon: Rocket,      color: "bg-purple-600"  };
   return { icon: BarChart3, color: "bg-primary" };
 };
 
-// ─── Build filter tabs dynamically from unique categories in API ───────────────
 const buildTabs = (assets: InvestmentAsset[]) => {
   const cats = [...new Set(assets.map((a) => a.category).filter(Boolean))];
-  return [
-    { id: "all", label: "All" },
-    ...cats.map((c) => ({ id: c, label: c })),
-  ];
+  return [{ id: "all", label: "All" }, ...cats.map((c) => ({ id: c, label: c }))];
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
+type SheetStep = "detail" | "invest" | "confirm" | "success" | "error";
+
 export default function Invest() {
   const [, setLocation] = useLocation();
   const [activeCategory, setActiveCategory] = useState("all");
   const [selectedAsset, setSelectedAsset]   = useState<InvestmentAsset | null>(null);
   const [sheetOpen, setSheetOpen]           = useState(false);
+  const [step, setStep]                     = useState<SheetStep>("detail");
+  const [rawAmount, setRawAmount]           = useState("");
+  const [amountError, setAmountError]       = useState("");
 
-  // ── API ───────────────────────────────────────────────────────────────────
-  const { data: assets = [], isLoading, isError, refetch } = useInvestmentAssets();
+  // ── APIs ──────────────────────────────────────────────────────────────────
+  const { data: assets = [], isLoading, isError, refetch }   = useInvestmentAssets();
+  const { data: portfolio, isLoading: portfolioLoading }     = usePortfolio();
+  const { prices, loading: pricesLoading, lastUpdated, refresh } = useMarketPrices();
+  const { mutate: purchase, isPending: purchasing }          = useInvestmentPurchase();
 
   // ── Derived ───────────────────────────────────────────────────────────────
-  const tabs = buildTabs(assets);
+  const portfolioValue = portfolio?.portfolio_value ?? 0;
+  const holdingsCount  = portfolio?.investments?.length ?? 0;
+  const tabs           = buildTabs(assets);
 
-  const filteredAssets =
-    activeCategory === "all"
-      ? assets
-      : assets.filter((a) => a.category === activeCategory);
+  const filteredAssets = activeCategory === "all"
+    ? assets
+    : assets.filter((a) => a.category === activeCategory);
+
+  // Investment calculation
+  const amount     = parseFloat(rawAmount.replace(/,/g, "")) || 0;
+  const priceUnit  = selectedAsset?.pricePerUnit ?? 0;
+  const units      = priceUnit > 0 ? amount / priceUnit : 0;
+  const minPayment = selectedAsset?.minPayment ?? 0;
+
+  // Real-time market ticker rows
+  const marketRows = [
+    {
+      name: "BTC/NGN",
+      value: prices.bitcoin ? formatNGN(prices.bitcoin.ngn) : "—",
+      change: prices.bitcoin ? `${prices.bitcoin.ngn_24h_change >= 0 ? "+" : ""}${prices.bitcoin.ngn_24h_change.toFixed(2)}%` : "—",
+      positive: (prices.bitcoin?.ngn_24h_change ?? 0) >= 0,
+      live: true,
+    },
+    {
+      name: "ETH/NGN",
+      value: prices.ethereum ? formatNGN(prices.ethereum.ngn) : "—",
+      change: prices.ethereum ? `${prices.ethereum.ngn_24h_change >= 0 ? "+" : ""}${prices.ethereum.ngn_24h_change.toFixed(2)}%` : "—",
+      positive: (prices.ethereum?.ngn_24h_change ?? 0) >= 0,
+      live: true,
+    },
+    {
+      name: "SOL/NGN",
+      value: prices.solana ? formatNGN(prices.solana.ngn) : "—",
+      change: prices.solana ? `${prices.solana.ngn_24h_change >= 0 ? "+" : ""}${prices.solana.ngn_24h_change.toFixed(2)}%` : "—",
+      positive: (prices.solana?.ngn_24h_change ?? 0) >= 0,
+      live: true,
+    },
+    { name: "T-Bill Rate", value: "18.5%", change: "+0.2%", positive: true, live: false },
+  ];
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleAssetTap = (asset: InvestmentAsset) => {
     setSelectedAsset(asset);
+    setStep("detail");
+    setRawAmount("");
+    setAmountError("");
     setSheetOpen(true);
-  };
-
-  const handleStartInvesting = () => {
-    if (!selectedAsset) return;
-    setSheetOpen(false);
-    // Navigate using category slug so AssetListing can match it
-    const slug = selectedAsset.category.toLowerCase().replace(/\s+/g, "-");
-    setLocation(`/invest/${slug}`);
   };
 
   const handleCloseSheet = () => {
     setSheetOpen(false);
     setSelectedAsset(null);
+    setStep("detail");
+    setRawAmount("");
+    setAmountError("");
+  };
+
+  const handleAmountChange = (val: string) => {
+    // Allow digits and comma only
+    const clean = val.replace(/[^0-9]/g, "");
+    const num   = parseFloat(clean) || 0;
+    setRawAmount(clean ? Number(clean).toLocaleString() : "");
+    if (clean && num < minPayment) {
+      setAmountError(`Minimum investment is ₦${minPayment.toLocaleString()}`);
+    } else {
+      setAmountError("");
+    }
+  };
+
+  const handleProceedToConfirm = () => {
+    if (!amount || amount < minPayment) {
+      setAmountError(`Minimum investment is ₦${minPayment.toLocaleString()}`);
+      return;
+    }
+    setStep("confirm");
+  };
+
+  const handleConfirmPurchase = () => {
+    if (!selectedAsset) return;
+    purchase(
+      { asset: selectedAsset, amount, units },
+      {
+        onSuccess: () => setStep("success"),
+        onError:   () => setStep("error"),
+      }
+    );
+  };
+
+  const handleNavigateToInvest = () => {
+    if (!selectedAsset) return;
+    setSheetOpen(false);
+    const slug = selectedAsset.category.toLowerCase().replace(/\s+/g, "-");
+    setLocation(`/invest/${slug}`);
   };
 
   return (
@@ -115,7 +229,16 @@ export default function Invest() {
             <div className="flex items-center justify-between gap-3 mb-4">
               <div>
                 <p className="text-sm text-muted-foreground">Portfolio Value</p>
-                <h2 className="text-3xl font-bold">₦0.00</h2>
+                {portfolioLoading ? (
+                  <div className="h-9 w-40 bg-muted animate-pulse rounded mt-1" />
+                ) : (
+                  <h2 className="text-3xl font-bold">
+                    ₦{portfolioValue.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </h2>
+                )}
+                {!portfolioLoading && holdingsCount > 0 && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{holdingsCount} asset{holdingsCount > 1 ? "s" : ""} held</p>
+                )}
               </div>
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <PieChart className="w-6 h-6 text-primary" />
@@ -132,23 +255,47 @@ export default function Invest() {
           </CardContent>
         </Card>
 
-        {/* ── Market Overview (static) ── */}
+        {/* ── Market Overview — live via CoinGecko ── */}
         <section>
           <div className="flex items-center justify-between gap-2 mb-3">
-            <h3 className="font-semibold text-lg">Market Overview</h3>
-            <Button variant="ghost" size="sm" className="text-muted-foreground text-xs gap-1" data-testid="button-see-all-markets">
-              See All <ChevronRight className="w-3 h-3" />
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-lg">Market Overview</h3>
+              {lastUpdated && (
+                <span className="text-[10px] text-muted-foreground">
+                  Updated {lastUpdated.toLocaleTimeString("en-NG", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground text-xs gap-1"
+              onClick={() => refresh()}
+              disabled={pricesLoading}
+              data-testid="button-refresh-markets"
+            >
+              <RefreshCw className={`w-3 h-3 ${pricesLoading ? "animate-spin" : ""}`} />
+              Refresh
             </Button>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {marketData.map((m, i) => (
+            {marketRows.map((m, i) => (
               <Card key={i} className="border">
                 <CardContent className="p-3">
-                  <p className="text-xs text-muted-foreground">{m.name}</p>
-                  <p className="font-semibold">{m.value}</p>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <p className="text-xs text-muted-foreground">{m.name}</p>
+                    {m.live && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    )}
+                  </div>
+                  {pricesLoading && m.live ? (
+                    <div className="h-5 w-20 bg-muted animate-pulse rounded mb-1" />
+                  ) : (
+                    <p className="font-semibold text-sm">{m.value}</p>
+                  )}
                   <div className={`flex items-center gap-1 text-xs ${m.positive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                     {m.positive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                    {m.change}
+                    {pricesLoading && m.live ? "—" : m.change}
                   </div>
                 </CardContent>
               </Card>
@@ -156,7 +303,7 @@ export default function Invest() {
           </div>
         </section>
 
-        {/* ── Category Filter — dynamic from API ── */}
+        {/* ── Category Filter ── */}
         {!isLoading && (
           <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
             {tabs.map((tab) => (
@@ -180,12 +327,9 @@ export default function Invest() {
             <h3 className="font-semibold text-lg">
               {activeCategory === "all" ? "All Investment Assets" : activeCategory}
             </h3>
-            {!isLoading && (
-              <Badge variant="secondary">{filteredAssets.length} assets</Badge>
-            )}
+            {!isLoading && <Badge variant="secondary">{filteredAssets.length} assets</Badge>}
           </div>
 
-          {/* Error */}
           {isError && (
             <div className="flex flex-col items-center gap-3 py-12 text-center">
               <AlertCircle className="w-10 h-10 text-destructive" />
@@ -194,7 +338,6 @@ export default function Invest() {
             </div>
           )}
 
-          {/* Skeletons */}
           {isLoading && (
             <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -212,104 +355,80 @@ export default function Invest() {
             </div>
           )}
 
-          {/* Asset cards */}
           {!isLoading && !isError && (
-            <>
-              {filteredAssets.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 py-12 text-center">
-                  <BarChart3 className="w-10 h-10 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">No assets in this category yet.</p>
-                </div>
-              ) : (
-                <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-                  {filteredAssets.map((asset) => {
-                    const { icon: Icon, color } = getCategoryStyle(asset.category);
-                    const name    = asset.assetName ?? asset.category ?? "Asset";
-                    const minAmt  = asset.minPayment ? `₦${Number(asset.minPayment).toLocaleString()}` : null;
-                    const returns = asset.interest ? `${asset.interest}% p.a.` : asset.percentGrowth ? `${asset.percentGrowth > 0 ? "+" : ""}${asset.percentGrowth}%` : null;
+            filteredAssets.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-12 text-center">
+                <BarChart3 className="w-10 h-10 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">No assets in this category yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+                {filteredAssets.map((asset) => {
+                  const { icon: Icon, color } = getCategoryStyle(asset.category);
+                  const name    = asset.assetName ?? asset.category ?? "Asset";
+                  const minAmt  = asset.minPayment ? `₦${Number(asset.minPayment).toLocaleString()}` : null;
+                  const returns = asset.interest
+                    ? `${asset.interest}% p.a.`
+                    : asset.percentGrowth
+                    ? `${asset.percentGrowth > 0 ? "+" : ""}${asset.percentGrowth}%`
+                    : null;
+                  const tagList = asset.tags ? asset.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
+                  const pubDate = asset.pubDate
+                    ? new Date(asset.pubDate).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })
+                    : null;
 
-                    // tags — split by comma if multiple
-                    const tagList = asset.tags
-                      ? asset.tags.split(",").map((t) => t.trim()).filter(Boolean)
-                      : [];
-
-                    // pub_date — format as readable date
-                    const pubDate = asset.pubDate
-                      ? new Date(asset.pubDate).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })
-                      : null;
-
-                    return (
-                      <Card
-                        key={asset.id}
-                        className="border hover-elevate cursor-pointer"
-                        onClick={() => handleAssetTap(asset)}
-                        data-testid={`invest-option-${asset.id}`}
-                      >
-                        <CardContent className="p-4">
-                          {/* ── Top row: icon + name + chevron ── */}
-                          <div className="flex items-center gap-4 mb-3">
-                            <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center relative flex-shrink-0`}>
-                              {asset.investmentIcon
-                                ? <img src={asset.investmentIcon} alt={name} className="w-8 h-8 rounded-lg object-cover" />
-                                : <Icon className="w-6 h-6 text-white" />
-                              }
-                              {asset.locked && (
-                                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-card border flex items-center justify-center">
-                                  <Lock className="w-3 h-3 text-muted-foreground" />
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium">{name}</p>
-                              <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                                {returns && (
-                                  <span className="text-xs font-medium text-green-600 dark:text-green-400">{returns}</span>
-                                )}
-                                {minAmt && (
-                                  <span className="text-xs text-muted-foreground">Min: {minAmt}</span>
-                                )}
-                                {asset.riskLevel && (
-                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">{asset.riskLevel}</Badge>
-                                )}
+                  return (
+                    <Card
+                      key={asset.id}
+                      className="border hover-elevate cursor-pointer"
+                      onClick={() => handleAssetTap(asset)}
+                      data-testid={`invest-option-${asset.id}`}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4 mb-3">
+                          <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center relative flex-shrink-0`}>
+                            {asset.investmentIcon
+                              ? <img src={asset.investmentIcon} alt={name} className="w-8 h-8 rounded-lg object-cover" />
+                              : <Icon className="w-6 h-6 text-white" />
+                            }
+                            {asset.locked && (
+                              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-card border flex items-center justify-center">
+                                <Lock className="w-3 h-3 text-muted-foreground" />
                               </div>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          </div>
-
-                          {/* ── About ── */}
-                          {(asset.about ?? asset.description) && (
-                            <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                              {asset.about ?? asset.description}
-                            </p>
-                          )}
-
-                          {/* ── Tags ── */}
-                          {tagList.length > 0 && (
-                            <div className="flex gap-1.5 flex-wrap mb-2">
-                              {tagList.map((tag) => (
-                                <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0">{tag}</Badge>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* ── Market cap + pub date ── */}
-                          <div className="flex items-center justify-between gap-2 mt-1">
-                            {asset.marketCap ? (
-                              <span className="text-[10px] text-muted-foreground">
-                                MCap: ₦{Number(asset.marketCap).toLocaleString()}
-                              </span>
-                            ) : <span />}
-                            {pubDate && (
-                              <span className="text-[10px] text-muted-foreground">{pubDate}</span>
                             )}
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
-            </>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium">{name}</p>
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                              {returns && <span className="text-xs font-medium text-green-600 dark:text-green-400">{returns}</span>}
+                              {minAmt && <span className="text-xs text-muted-foreground">Min: {minAmt}</span>}
+                              {asset.riskLevel && <Badge variant="outline" className="text-[10px] px-1.5 py-0">{asset.riskLevel}</Badge>}
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        </div>
+                        {(asset.about ?? asset.description) && (
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{asset.about ?? asset.description}</p>
+                        )}
+                        {tagList.length > 0 && (
+                          <div className="flex gap-1.5 flex-wrap mb-2">
+                            {tagList.map((tag) => (
+                              <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0">{tag}</Badge>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between gap-2 mt-1">
+                          {asset.marketCap
+                            ? <span className="text-[10px] text-muted-foreground">MCap: ₦{Number(asset.marketCap).toLocaleString()}</span>
+                            : <span />}
+                          {pubDate && <span className="text-[10px] text-muted-foreground">{pubDate}</span>}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )
           )}
         </section>
 
@@ -330,13 +449,16 @@ export default function Invest() {
 
       <BottomNav currentPage="invest" />
 
-      {/* ── Asset Detail Sheet ── */}
+      {/* ── Asset Sheet ── */}
       <Sheet open={sheetOpen} onOpenChange={(open) => { if (!open) handleCloseSheet(); else setSheetOpen(true); }}>
         <SheetContent side="bottom" className="h-[92vh] overflow-y-auto rounded-t-2xl p-0">
           {selectedAsset && (() => {
             const { icon: Icon, color } = getCategoryStyle(selectedAsset.category);
             const name = selectedAsset.assetName ?? selectedAsset.category ?? "Asset";
-            return (
+            const tagList = selectedAsset.tags ? selectedAsset.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
+
+            // ── Step: Detail ──────────────────────────────────────────────
+            if (step === "detail") return (
               <div className="flex flex-col h-full">
                 <SheetHeader className="p-5 pb-0">
                   <div className="flex items-center gap-3 mb-1">
@@ -356,88 +478,91 @@ export default function Invest() {
                 </SheetHeader>
 
                 <div className="flex-1 overflow-y-auto p-5 space-y-4 pb-4">
-                  {/* Key metrics grid */}
+                  {/* Price */}
+                  {selectedAsset.pricePerUnit && (
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-bold">₦{Number(selectedAsset.pricePerUnit).toLocaleString()}</span>
+                      <span className="text-sm text-muted-foreground">per {selectedAsset.perUnitName ?? "unit"}</span>
+                      {selectedAsset.percentGrowth !== null && (
+                        <span className={`text-sm font-medium ${(selectedAsset.percentGrowth ?? 0) >= 0 ? "text-green-600" : "text-red-500"}`}>
+                          {(selectedAsset.percentGrowth ?? 0) >= 0 ? "+" : ""}{selectedAsset.percentGrowth}%
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Metrics grid */}
                   <div className="grid grid-cols-2 gap-3">
                     {selectedAsset.interest && (
-                      <Card className="border">
-                        <CardContent className="p-3 text-center">
-                          <p className="text-xs text-muted-foreground mb-0.5">Returns</p>
-                          <p className="font-semibold text-sm text-green-600 dark:text-green-400">{selectedAsset.interest}% p.a.</p>
-                        </CardContent>
-                      </Card>
+                      <Card className="border"><CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground mb-0.5">Returns</p>
+                        <p className="font-semibold text-sm text-green-600 dark:text-green-400">{selectedAsset.interest}% p.a.</p>
+                      </CardContent></Card>
                     )}
                     {selectedAsset.minPayment && (
-                      <Card className="border">
-                        <CardContent className="p-3 text-center">
-                          <p className="text-xs text-muted-foreground mb-0.5">Min. Amount</p>
-                          <p className="font-semibold text-sm">₦{Number(selectedAsset.minPayment).toLocaleString()}</p>
-                        </CardContent>
-                      </Card>
+                      <Card className="border"><CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground mb-0.5">Min. Amount</p>
+                        <p className="font-semibold text-sm">₦{Number(selectedAsset.minPayment).toLocaleString()}</p>
+                      </CardContent></Card>
                     )}
                     {selectedAsset.riskLevel && (
-                      <Card className="border">
-                        <CardContent className="p-3 text-center">
-                          <p className="text-xs text-muted-foreground mb-0.5">Risk Level</p>
-                          <p className="font-semibold text-sm">{selectedAsset.riskLevel}</p>
-                        </CardContent>
-                      </Card>
+                      <Card className="border"><CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground mb-0.5">Risk Level</p>
+                        <p className="font-semibold text-sm">{selectedAsset.riskLevel}</p>
+                      </CardContent></Card>
                     )}
                     {selectedAsset.tenure && (
-                      <Card className="border">
-                        <CardContent className="p-3 text-center">
-                          <p className="text-xs text-muted-foreground mb-0.5">Tenure</p>
-                          <p className="font-semibold text-sm">{selectedAsset.tenure}</p>
-                        </CardContent>
-                      </Card>
+                      <Card className="border"><CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground mb-0.5">Tenure</p>
+                        <p className="font-semibold text-sm">{selectedAsset.tenure}</p>
+                      </CardContent></Card>
+                    )}
+                    {selectedAsset.marketCap && (
+                      <Card className="border"><CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground mb-0.5">Market Cap</p>
+                        <p className="font-semibold text-sm">₦{Number(selectedAsset.marketCap).toLocaleString()}</p>
+                      </CardContent></Card>
+                    )}
+                    {selectedAsset.dailyVolume && (
+                      <Card className="border"><CardContent className="p-3 text-center">
+                        <p className="text-xs text-muted-foreground mb-0.5">Daily Volume</p>
+                        <p className="font-semibold text-sm">₦{Number(selectedAsset.dailyVolume).toLocaleString()}</p>
+                      </CardContent></Card>
                     )}
                   </div>
 
                   {/* About */}
                   {(selectedAsset.about || selectedAsset.description) && (
-                    <Card className="border">
-                      <CardContent className="p-4">
-                        <h4 className="font-semibold text-sm mb-2">About {name}</h4>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {selectedAsset.about ?? selectedAsset.description}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <Card className="border"><CardContent className="p-4">
+                      <h4 className="font-semibold text-sm mb-2">About {name}</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{selectedAsset.about ?? selectedAsset.description}</p>
+                    </CardContent></Card>
                   )}
 
-                  {/* Tags / type */}
-                  {(selectedAsset.tags || selectedAsset.investmentType) && (
+                  {/* Tags */}
+                  {(tagList.length > 0 || selectedAsset.investmentType) && (
                     <div className="flex gap-2 flex-wrap">
-                      {selectedAsset.investmentType && (
-                        <Badge variant="secondary" className="text-xs">{selectedAsset.investmentType}</Badge>
-                      )}
-                      {selectedAsset.tags && (
-                        <Badge variant="secondary" className="text-xs">{selectedAsset.tags}</Badge>
-                      )}
+                      {selectedAsset.investmentType && <Badge variant="secondary" className="text-xs">{selectedAsset.investmentType}</Badge>}
+                      {tagList.map((t) => <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>)}
                     </div>
                   )}
 
-                  {/* Locked notice */}
+                  {/* Locked */}
                   {selectedAsset.locked && (
-                    <Card className="border border-amber-500/20 bg-amber-500/5">
-                      <CardContent className="p-4 flex items-center gap-3">
-                        <Lock className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm font-medium">Asset Locked</p>
-                          <p className="text-xs text-muted-foreground">
-                            {selectedAsset.requiredSeed > 0
-                              ? `Requires ${selectedAsset.requiredSeed} seeds to unlock`
-                              : "Complete learning modules to unlock this asset"}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <Card className="border border-amber-500/20 bg-amber-500/5"><CardContent className="p-4 flex items-center gap-3">
+                      <Lock className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium">Asset Locked</p>
+                        <p className="text-xs text-muted-foreground">Complete learning modules to unlock this asset</p>
+                      </div>
+                    </CardContent></Card>
                   )}
 
-                  {/* Key info */}
+                  {/* Trust badges */}
                   <div className="space-y-2.5">
                     {[
-                      { icon: Shield, title: "SEC Regulated",      sub: "Fully compliant with Nigerian regulations" },
-                      { icon: Clock,  title: "Real-time Tracking", sub: "Monitor performance live"                  },
+                      { icon: Shield, title: "SEC Regulated", sub: "Fully compliant with Nigerian regulations" },
+                      { icon: Clock,  title: "Real-time Tracking", sub: "Monitor performance live" },
                     ].map(({ icon: Ico, title, sub }) => (
                       <div key={title} className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -453,24 +578,273 @@ export default function Invest() {
                 </div>
 
                 <div className="p-5 pt-3 space-y-2 border-t bg-background">
-                  <Button
-                    className="w-full"
-                    size="lg"
-                    disabled={selectedAsset.locked}
-                    onClick={handleStartInvesting}
-                    data-testid="button-start-investing"
-                  >
+                  <Button className="w-full" size="lg" disabled={selectedAsset.locked} onClick={() => setStep("invest")} data-testid="button-go-invest">
                     <PlayCircle className="w-5 h-5 mr-2" />
                     {selectedAsset.locked ? "Locked — Learn to Unlock" : `Invest in ${name}`}
                   </Button>
+                  <Button variant="outline" className="w-full" size="lg" onClick={handleNavigateToInvest} data-testid="button-view-assets">
+                    View All {name} Assets
+                  </Button>
                   {selectedAsset.locked && (
-                    <Button variant="outline" className="w-full" size="lg" onClick={() => { handleCloseSheet(); setLocation("/learn"); }} data-testid="button-go-learn-sheet">
+                    <Button variant="ghost" className="w-full" onClick={() => { handleCloseSheet(); setLocation("/learn"); }} data-testid="button-go-learn-sheet">
                       Go to Learn
                     </Button>
                   )}
                 </div>
               </div>
             );
+
+            // ── Step: Invest (amount entry) ───────────────────────────────
+            if (step === "invest") return (
+              <div className="flex flex-col h-full">
+                <SheetHeader className="p-5 pb-3 border-b">
+                  <div className="flex items-center gap-3">
+                    <Button variant="ghost" size="icon" onClick={() => setStep("detail")}><ChevronRight className="w-5 h-5 rotate-180" /></Button>
+                    <SheetTitle className="text-left">Invest in {name}</SheetTitle>
+                  </div>
+                </SheetHeader>
+
+                <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                  {/* Amount input */}
+                  <div>
+                    <p className="text-sm font-medium mb-2">Enter Amount (₦)</p>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">₦</span>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder={`Min. ₦${minPayment.toLocaleString()}`}
+                        value={rawAmount}
+                        onChange={(e) => handleAmountChange(e.target.value)}
+                        className="pl-7 text-lg font-semibold h-14"
+                        data-testid="input-invest-amount"
+                      />
+                    </div>
+                    {amountError && (
+                      <p className="text-xs text-destructive mt-1.5 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />{amountError}
+                      </p>
+                    )}
+                    {minPayment > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Minimum investment: ₦{minPayment.toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Quick amounts */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      minPayment || 5000,
+                      (minPayment || 5000) * 2,
+                      (minPayment || 5000) * 5,
+                    ].map((amt) => (
+                      <Button
+                        key={amt}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => handleAmountChange(String(amt))}
+                        data-testid={`quick-amount-${amt}`}
+                      >
+                        ₦{amt.toLocaleString()}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {/* Live unit calculation */}
+                  {amount > 0 && priceUnit > 0 && (
+                    <Card className="border bg-primary/5">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Amount</span>
+                          <span className="text-sm font-semibold">₦{amount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Price per {selectedAsset.perUnitName ?? "unit"}</span>
+                          <span className="text-sm font-semibold">₦{priceUnit.toLocaleString()}</span>
+                        </div>
+                        <div className="border-t pt-3 flex items-center justify-between">
+                          <span className="text-sm font-medium">You will receive</span>
+                          <span className="text-lg font-bold text-primary">
+                            {units < 1 ? units.toFixed(6) : units.toFixed(4)} {selectedAsset.perUnitName ?? "units"}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* No price per unit — direct amount */}
+                  {amount > 0 && priceUnit === 0 && (
+                    <Card className="border bg-primary/5">
+                      <CardContent className="p-4 flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Investment Amount</span>
+                        <span className="text-lg font-bold text-primary">₦{amount.toLocaleString()}</span>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Trust info */}
+                  <Card className="border">
+                    <CardContent className="p-3 flex items-start gap-2">
+                      <Shield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Your investment is protected under Nigerian SEC regulations. Transaction fees are zero.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="p-5 pt-3 border-t bg-background">
+                  <Button
+                    className="w-full"
+                    size="lg"
+                    disabled={!amount || !!amountError}
+                    onClick={handleProceedToConfirm}
+                    data-testid="button-proceed-confirm"
+                  >
+                    Continue — ₦{amount ? amount.toLocaleString() : "0"}
+                  </Button>
+                </div>
+              </div>
+            );
+
+            // ── Step: Confirm ─────────────────────────────────────────────
+            if (step === "confirm") return (
+              <div className="flex flex-col h-full">
+                <SheetHeader className="p-5 pb-3 border-b">
+                  <div className="flex items-center gap-3">
+                    <Button variant="ghost" size="icon" onClick={() => setStep("invest")}><ChevronRight className="w-5 h-5 rotate-180" /></Button>
+                    <SheetTitle className="text-left">Confirm Investment</SheetTitle>
+                  </div>
+                </SheetHeader>
+
+                <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                  <div className="text-center py-2">
+                    <div className={`w-16 h-16 rounded-2xl ${color} flex items-center justify-center mx-auto mb-4`}>
+                      {selectedAsset.investmentIcon
+                        ? <img src={selectedAsset.investmentIcon} alt={name} className="w-10 h-10 rounded-xl object-cover" />
+                        : <Icon className="w-8 h-8 text-white" />
+                      }
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-1">You are investing</p>
+                    <p className="text-4xl font-bold mb-1">₦{amount.toLocaleString()}</p>
+                    <p className="text-sm text-muted-foreground">in {name}</p>
+                  </div>
+
+                  <Card className="border">
+                    <CardContent className="p-4 space-y-3">
+                      {[
+                        ["Asset",        name],
+                        ["Amount",       `₦${amount.toLocaleString()}`],
+                        ...(priceUnit > 0 ? [
+                          ["Price per unit", `₦${priceUnit.toLocaleString()}`],
+                          ["Units",          units < 1 ? units.toFixed(6) : units.toFixed(4)],
+                        ] : []),
+                        ["Transaction Fee", "Free"],
+                        ["Payment Method",  "Wallet Balance"],
+                      ].map(([label, val], i, arr) => (
+                        <div key={label}>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">{label}</span>
+                            <span className={`text-sm font-medium ${label === "Transaction Fee" ? "text-green-600 dark:text-green-400" : ""}`}>{val}</span>
+                          </div>
+                          {i < arr.length - 1 && <div className="border-t mt-3" />}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border bg-primary/5"><CardContent className="p-3 flex items-start gap-2">
+                    <Shield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      By confirming, you agree to Growtt's terms. Your portfolio will update immediately after purchase.
+                    </p>
+                  </CardContent></Card>
+                </div>
+
+                <div className="p-5 pt-3 space-y-2 border-t bg-background">
+                  <Button className="w-full" size="lg" disabled={purchasing} onClick={handleConfirmPurchase} data-testid="button-confirm-purchase">
+                    {purchasing ? (
+                      <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Processing…</>
+                    ) : (
+                      <>Confirm — ₦{amount.toLocaleString()}</>
+                    )}
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={() => setStep("invest")} disabled={purchasing} data-testid="button-cancel-confirm">
+                    Edit Amount
+                  </Button>
+                </div>
+              </div>
+            );
+
+            // ── Step: Success ─────────────────────────────────────────────
+            if (step === "success") return (
+              <div className="flex flex-col h-full items-center justify-center p-8 text-center gap-5">
+                <div className="w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <CheckCircle2 className="w-12 h-12 text-green-600 dark:text-green-400" />
+                </div>
+                <PartyPopper className="w-8 h-8 text-yellow-500" />
+                <div>
+                  <h2 className="text-2xl font-bold mb-1">Investment Successful!</h2>
+                  <p className="text-muted-foreground">You just invested</p>
+                  <p className="text-4xl font-bold my-2">₦{amount.toLocaleString()}</p>
+                  <p className="text-muted-foreground">in {name}</p>
+                  {priceUnit > 0 && (
+                    <p className="text-sm text-primary font-semibold mt-2">
+                      {units < 1 ? units.toFixed(6) : units.toFixed(4)} {selectedAsset.perUnitName ?? "units"} added to portfolio
+                    </p>
+                  )}
+                </div>
+
+                <Card className="border w-full max-w-xs">
+                  <CardContent className="p-4 space-y-2">
+                    {[
+                      ["Asset", name],
+                      ["Amount", `₦${amount.toLocaleString()}`],
+                      ...(priceUnit > 0 ? [["Units", units < 1 ? units.toFixed(6) : units.toFixed(4)]] : []),
+                    ].map(([label, val]) => (
+                      <div key={label} className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">{label}</span>
+                        <span className="text-xs font-medium">{val}</span>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Status</span>
+                      <Badge variant="secondary" className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Completed</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="w-full max-w-xs space-y-2">
+                  <Button className="w-full" size="lg" onClick={() => { setStep("invest"); setRawAmount(""); }} data-testid="button-invest-more">
+                    Invest More
+                  </Button>
+                  <Button variant="outline" className="w-full" onClick={handleCloseSheet} data-testid="button-back-to-assets">
+                    Back to Assets
+                  </Button>
+                </div>
+              </div>
+            );
+
+            // ── Step: Error ───────────────────────────────────────────────
+            if (step === "error") return (
+              <div className="flex flex-col h-full items-center justify-center p-8 text-center gap-5">
+                <div className="w-24 h-24 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <AlertCircle className="w-12 h-12 text-destructive" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Purchase Failed</h2>
+                  <p className="text-muted-foreground text-sm">Something went wrong processing your investment. Please try again.</p>
+                </div>
+                <div className="w-full max-w-xs space-y-2">
+                  <Button className="w-full" size="lg" onClick={() => setStep("confirm")} data-testid="button-retry-purchase">Try Again</Button>
+                  <Button variant="outline" className="w-full" onClick={handleCloseSheet} data-testid="button-close-error">Close</Button>
+                </div>
+              </div>
+            );
+
+            return null;
           })()}
         </SheetContent>
       </Sheet>

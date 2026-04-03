@@ -371,28 +371,28 @@ export interface InvestmentAsset {
 
 // ─── Adapter ──────────────────────────────────────────────────────────────────
 
-export const adaptInvestmentAsset = (api: ApiInvestmentAsset): InvestmentAsset => ({
-  id:             api.id,
-  category:       api.category,
-  investmentIcon: api.investment_icon,
-  investmentType: api.investment_type,
-  about:          api.about,
-  description:    api.description,
-  riskLevel:      api.risk_level,
-  tenure:         api.tenure,
-  minPayment:     api.min_payment    !== null ? Number(api.min_payment)    : null,
-  interest:       api.interest       !== null ? Number(api.interest)       : null,
-  assetName:      api.asset_name,
-  assetNameCode:  api.asset_name_code,
-  tags:           api.tags,
-  pricePerUnit:   api.price_per_unit !== null ? Number(api.price_per_unit) : null,
-  perUnitName:    api.per_unit_name,
-  percentGrowth:  api.percent_growth !== null ? Number(api.percent_growth) : null,
-  marketCap:      api.market_cap     !== null ? Number(api.market_cap)     : null,
-  dailyVolume:    api.daily_volume   !== null ? Number(api.daily_volume)   : null,
-  locked:         !api.status,
-  pubDate:        api.pub_date,
-});
+// export const adaptInvestmentAsset = (api: ApiInvestmentAsset): InvestmentAsset => ({
+//   id:             api.id,
+//   category:       api.category,
+//   investmentIcon: api.investment_icon,
+//   investmentType: api.investment_type,
+//   about:          api.about,
+//   description:    api.description,
+//   riskLevel:      api.risk_level,
+//   tenure:         api.tenure,
+//   minPayment:     api.min_payment    !== null ? Number(api.min_payment)    : null,
+//   interest:       api.interest       !== null ? Number(api.interest)       : null,
+//   assetName:      api.asset_name,
+//   assetNameCode:  api.asset_name_code,
+//   tags:           api.tags,
+//   pricePerUnit:   api.price_per_unit !== null ? Number(api.price_per_unit) : null,
+//   perUnitName:    api.per_unit_name,
+//   percentGrowth:  api.percent_growth !== null ? Number(api.percent_growth) : null,
+//   marketCap:      api.market_cap     !== null ? Number(api.market_cap)     : null,
+//   dailyVolume:    api.daily_volume   !== null ? Number(api.daily_volume)   : null,
+//   locked:         !api.status,
+//   pubDate:        api.pub_date,
+// });
 
 // ─── Sign Up ────────────────────────────────────────────────────────────────
 
@@ -544,4 +544,105 @@ export interface PortfolioInvestment {
 export interface Portfolio {
   portfolio_value: number;
   investments: PortfolioInvestment[];
+}
+
+//put investment details
+
+// ─── API Response Shape — GET /investment-asset/investment-asset/ ─────────────
+
+export interface ApiInvestmentAsset {
+  id: string;
+  category: string;
+  investment_icon: string | null;
+  investment_type: string | null;
+  about: string | null;
+  description: string | null;
+  risk_level: string | null;
+  tenure: string | null;
+  min_payment: string | null;
+  interest: string | null;
+  asset_name: string | null;
+  asset_name_code: string | null;
+  tags: string | null;
+  price_per_unit: string | null;
+  per_unit_name: string | null;
+  percent_growth: string | null;
+  market_cap: string | null;
+  daily_volume: string | null;
+  status: boolean;
+  pub_date: string;
+}
+
+// ─── UI Shape ─────────────────────────────────────────────────────────────────
+
+export interface InvestmentAsset {
+  id: string;
+  category: string;
+  investmentIcon: string | null;
+  investmentType: string | null;
+  about: string | null;
+  description: string | null;
+  riskLevel: string | null;
+  tenure: string | null;
+  minPayment: number | null;
+  interest: number | null;       // e.g. 12.5 (%)
+  assetName: string | null;
+  assetNameCode: string | null;  // ticker e.g. "BTC", "DANGCEM"
+  tags: string | null;
+  pricePerUnit: number | null;
+  perUnitName: string | null;    // e.g. "unit", "share", "coin"
+  percentGrowth: number | null;
+  marketCap: number | null;
+  dailyVolume: number | null;
+  locked: boolean;               // derived: !status
+  pubDate: string;
+}
+
+// ─── Adapter ──────────────────────────────────────────────────────────────────
+
+export const adaptInvestmentAsset = (api: ApiInvestmentAsset): InvestmentAsset => ({
+  id:             api.id,
+  category:       api.category,
+  investmentIcon: api.investment_icon,
+  investmentType: api.investment_type,
+  about:          api.about,
+  description:    api.description,
+  riskLevel:      api.risk_level,
+  tenure:         api.tenure,
+  minPayment:     api.min_payment    !== null ? Number(api.min_payment)    : null,
+  interest:       api.interest       !== null ? Number(api.interest)       : null,
+  assetName:      api.asset_name,
+  assetNameCode:  api.asset_name_code,
+  tags:           api.tags,
+  pricePerUnit:   api.price_per_unit !== null ? Number(api.price_per_unit) : null,
+  perUnitName:    api.per_unit_name,
+  percentGrowth:  api.percent_growth !== null ? Number(api.percent_growth) : null,
+  marketCap:      api.market_cap     !== null ? Number(api.market_cap)     : null,
+  dailyVolume:    api.daily_volume   !== null ? Number(api.daily_volume)   : null,
+  locked:         !api.status,
+  pubDate:        api.pub_date,
+});
+
+// ─── Update Payload — PATCH /investment-asset/investment-asset/{id}/ ──────────
+
+export interface UpdateInvestmentAssetPayload {
+  category?:        string;
+  investment_icon?: string;
+  investment_type?: string;
+  about?:           string;
+  description?:     string;
+  risk_level?:      string;
+  tenure?:          string;
+  min_payment?:     string;
+  interest?:        string;
+  asset_name?:      string;
+  asset_name_code?: string;
+  tags?:            string;
+  price_per_unit?:  string;
+  per_unit_name?:   string;
+  percent_growth?:  string;
+  market_cap?:      string;
+  daily_volume?:    string;
+  status?:          boolean;
+  pub_date?:        string;
 }
