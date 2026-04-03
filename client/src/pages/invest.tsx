@@ -205,7 +205,7 @@ export default function Invest() {
     if (!selectedAsset) return;
     setSheetOpen(false);
     const slug = selectedAsset.category.toLowerCase().replace(/\s+/g, "-");
-    setLocation(`/invest/${slug}`);
+    setLocation(`/invest/${slug}/${selectedAsset.id}`);
   };
 
   return (
@@ -464,7 +464,7 @@ export default function Invest() {
                   <div className="flex items-center gap-3 mb-1">
                     <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center flex-shrink-0`}>
                       {selectedAsset.investmentIcon
-                        ? <img src={selectedAsset.investmentIcon} alt={name} className="w-8 h-8 rounded-lg object-cover" />
+                        ? <Icon className="w-6 h-6 text-white rounded-lg object-cover" />
                         : <Icon className="w-6 h-6 text-white" />
                       }
                     </div>
@@ -723,7 +723,7 @@ export default function Invest() {
                   <div className="text-center py-2">
                     <div className={`w-16 h-16 rounded-2xl ${color} flex items-center justify-center mx-auto mb-4`}>
                       {selectedAsset.investmentIcon
-                        ? <img src={selectedAsset.investmentIcon} alt={name} className="w-10 h-10 rounded-xl object-cover" />
+                        ? <Icon className="w-6 h-6 text-white rounded-xl object-cover" />
                         : <Icon className="w-8 h-8 text-white" />
                       }
                     </div>
