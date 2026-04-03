@@ -20,7 +20,7 @@ const mainNavItems = [
   { id: "home",        label: "Home",           icon: Home,          path: "/dashboard" },
   { id: "learn",       label: "Learn",          icon: GraduationCap, path: "/learn"     },
   { id: "invest",      label: "Invest",         icon: TrendingUp,    path: "/invest"    },
-  { id: "leaderboard", label: "Leaderboard",    icon: Trophy,        path: "/leaderboard" },
+  // { id: "leaderboard", label: "Leaderboard",    icon: Trophy,        path: "/leaderboard" },
   { id: "news",        label: "News & Insights", icon: Newspaper,    path: "/news"      },
 ];
 
