@@ -26,7 +26,7 @@ const mainNavItems = [
 
 const accountNavItems = [
   { id: "profile",  label: "Profile",       icon: User,        path: "/profile" },
-  { id: "settings", label: "Settings",      icon: Settings,    path: "/profile" },
+  // { id: "settings", label: "Settings",      icon: Settings,    path: "/profile" },
   { id: "help",     label: "Help & Support", icon: HelpCircle, path: "/profile" },
 ];
 
