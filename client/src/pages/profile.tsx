@@ -22,13 +22,13 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-  { icon: CreditCard, label: "Payment Methods", badge: null },
+  // { icon: CreditCard, label: "Payment Methods", badge: null },
   { icon: FileText, label: "Transaction History", badge: null },
   { icon: Users, label: "Referrals", badge: "50 seeds" },
-  { icon: Bell, label: "Notifications", badge: null },
-  { icon: Shield, label: "Security", badge: null },
+  // { icon: Bell, label: "Notifications", badge: null },
+  // { icon: Shield, label: "Security", badge: null },
   { icon: HelpCircle, label: "Help & Support", badge: null },
-  { icon: Settings, label: "Settings", badge: null },
+  // { icon: Settings, label: "Settings", badge: null },
 ];
 
 export default function Profile() {
