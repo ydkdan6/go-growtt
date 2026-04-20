@@ -202,6 +202,7 @@ export interface ApiLesson {
 // UI Shape 
  
 export interface Lesson {
+  status: boolean;
   id: string;
   title: string;
   track: string;

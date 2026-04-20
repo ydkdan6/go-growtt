@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getModulesApi } from "@/api/general.api";
-// import { getModuleByIdApi } from "@/api/general.api";
+import { getModulesApi, getModulesTrackApi } from "@/api/general.api";
 import { adaptModule } from "@/types/general.types";
 import type { Module } from "@/types/general.types";
 import { parseApiError } from "@/utils/parseApiError";
@@ -8,16 +7,12 @@ import { parseApiError } from "@/utils/parseApiError";
 export const moduleKeys = {
   all: ["modules"] as const,
   list: () => [...moduleKeys.all, "list"] as const,
+  tracked: (moduleId: string, userId: string | number) =>
+    [...moduleKeys.all, "tracked", moduleId, String(userId)] as const,
   byTrack: (track: string) => [...moduleKeys.all, "track", track] as const,
 };
 
-/**
- * Fetches all modules from GET /learn/modules/
- * Each module includes its nested lessons (already adapted).
- *
- * Usage:
- *   const { data: modules, isLoading, isError } = useModules();
- */
+/** Fetches all modules — used for the list view (no tracking) */
 export const useModules = () => {
   return useQuery<Module[], string>({
     queryKey: moduleKeys.list(),
@@ -29,18 +24,38 @@ export const useModules = () => {
         throw parseApiError(err);
       }
     },
-    staleTime: 1000 * 60 * 10,  // 10 min
-    gcTime: 1000 * 60 * 30,     // 30 min
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 30,
   });
 };
 
 /**
- * Returns modules filtered to a specific track.
- * Same cache as useModules() — no extra network request.
+ * Fetches a single module with goal/progress tracking context.
+ * Fires only when the module card is expanded and userId is available.
+ *
+ * GET /learn/modules-track/{moduleId}/{userId}/
  *
  * Usage:
- *   const { data: modules, isLoading } = useModulesByTrack("Stocks");
+ *   const { data: trackedModule } = useModuleTrack(module.id, userId);
  */
+export const useModuleTrack = (moduleId: string, userId: string | number) => {
+  return useQuery<Module, string>({
+    queryKey: moduleKeys.tracked(moduleId, userId),
+    queryFn: async () => {
+      try {
+        const raw = await getModulesTrackApi(moduleId, userId);
+        // endpoint returns a single module object, not an array
+        return adaptModule(raw);
+      } catch (err) {
+        throw parseApiError(err);
+      }
+    },
+    enabled: !!moduleId && !!userId,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 30,
+  });
+};
+
 export const useModulesByTrack = (track: string) => {
   const query = useModules();
   return {
@@ -51,13 +66,6 @@ export const useModulesByTrack = (track: string) => {
   };
 };
 
-/**
- * Returns a single module by ID from the cached list.
- * No extra network request if useModules() has already been called.
- *
- * Usage:
- *   const { data: module, isLoading } = useModuleById("d6a624b5-...");
- */
 export const useModuleById = (id: string) => {
   const query = useModules();
   return {

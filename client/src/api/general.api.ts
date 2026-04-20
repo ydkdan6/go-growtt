@@ -186,6 +186,53 @@ export const getBlogByIdApi = async (id: string): Promise<ApiBlog> => {
   return data;
 };
 
+// ─── Get single Module with tracking (GET) ────────────────────────────────────
+export const getModulesTrackApi = async (
+  moduleId: string,
+  customUserId: string | number
+): Promise<ApiModule> => {
+  const { data } = await apiClient.get<ApiModule>(
+    `/learn/modules-track/${moduleId}/${customUserId}/`
+  );
+  return data;
+};
+
+// ─── Get single Lesson with tracking (GET) ────────────────────────────────────
+export const getLessonsTrackApi = async (
+  lessonId: string,
+  customUserId: string | number
+): Promise<ApiLesson> => {
+  const { data } = await apiClient.get<ApiLesson>(
+    `/learn/lessons-track/${lessonId}/${customUserId}/`
+  );
+  return data;
+};
+
+export const completeLessonApi = async (
+  lessonId: string,
+  customUserId: string | number,
+  lesson: {
+    title: string;
+    track: string;
+    content: string;
+    duration: string;
+    lesson_count: string;
+    required_seed: string;
+    pub_date: string;
+  }
+): Promise<void> => {
+  await apiClient.put(`/learn/lessons-track/${lessonId}/${customUserId}/`, {
+    title: lesson.title,
+    track: lesson.track,
+    content: lesson.content,
+    duration: lesson.duration,
+    lesson_count: lesson.lesson_count,
+    required_seed: lesson.required_seed,
+    status: true,        // ← marks the lesson as complete
+    pub_date: lesson.pub_date,
+  });
+};
+
 // ─── Get Portfolio (GET) ──────────────────────────────────────────────────────
 export const getPortfolioApi = async (
   userId: string | number
