@@ -233,7 +233,7 @@ export default function Home() {
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {/* Wallet Balance Card — from user.wallet_balance */}
-              <Card className="border-0 bg-growtt-wallet dark:bg-growtt-wallet overflow-visible rounded-2xl flex-shrink-0 w-full snap-center" data-testid="card-wallet-balance">
+              {/* <Card className="border-0 bg-growtt-wallet dark:bg-growtt-wallet overflow-visible rounded-2xl flex-shrink-0 w-full snap-center" data-testid="card-wallet-balance">
                 <CardContent className="p-5 lg:p-6">
                   <div className="flex items-center gap-2 mb-1">
                     <Wallet className="w-4 h-4 text-foreground/60" />
@@ -252,7 +252,7 @@ export default function Home() {
                     </Button>
                   </div>
                 </CardContent>
-              </Card>
+              </Card> */}
 
               {/* Demo Balance Card — from user.demo_balance */}
               <Card className="border-0 bg-growtt-wallet dark:bg-growtt-wallet overflow-visible rounded-2xl flex-shrink-0 w-full snap-center" data-testid="card-demo-balance">
@@ -265,23 +265,24 @@ export default function Home() {
                   <h2 className="text-3xl font-bold text-foreground mb-1">
                     ₦{demoBalance.toLocaleString()}
                   </h2>
-                  <p className="text-foreground/50 text-xs mb-3">Risk-free virtual funds to practice trading</p>
+                  <p className="text-foreground/50 text-xs mb-1">Risk-free virtual funds to practice trading</p>
+                  <p className="text-foreground/50 text-xs mb-3">Buy Seeds to Top up Funds</p>
                   <div className="flex gap-3">
                     <Button className="flex-1 bg-primary text-primary-foreground" data-testid="button-invest-demo">
-                      <Play className="w-4 h-4 mr-1.5" />Invest with Demo Funds
+                      <Play className="w-4 h-4 mr-1.5" />Buy Seeds
                     </Button>
-                    <Button variant="outline" className="bg-white/50 dark:bg-white/10 border-foreground/20 text-foreground" data-testid="button-reset-demo">
+                    {/* <Button variant="outline" className="bg-white/50 dark:bg-white/10 border-foreground/20 text-foreground" data-testid="button-reset-demo">
                       Reset
-                    </Button>
+                    </Button> */}
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <div className="flex justify-center gap-2 mt-2">
+            {/* <div className="flex justify-center gap-2 mt-2">
               <button className={`w-2 h-2 rounded-full transition-all ${activeWalletCard === 0 ? "bg-primary w-5" : "bg-muted-foreground/30"}`} onClick={() => walletScrollRef.current?.scrollTo({ left: 0, behavior: "smooth" })} data-testid="dot-wallet" />
               <button className={`w-2 h-2 rounded-full transition-all ${activeWalletCard === 1 ? "bg-primary w-5" : "bg-muted-foreground/30"}`} onClick={() => walletScrollRef.current?.scrollTo({ left: walletScrollRef.current.scrollWidth / 2, behavior: "smooth" })} data-testid="dot-demo" />
-            </div>
+            </div> */}
           </div>
 
           {/* ── Quick Actions ── */}

@@ -10,12 +10,14 @@ export const getStoredUserId = (): string =>
 /**
  * Hook to fetch and cache a user's full profile.
  *
- * This uses useQuery (not useMutation) because it's a GET — React Query will:
- *   - Cache the result for 5 minutes (staleTime from queryClient config)
- *   - Return the cached value instantly on subsequent renders
- *   - Automatically refetch in the background when stale
- *   - Share the same cache across ALL components using this hook
- *     (e.g. AppHeader, Profile page, Dashboard — all read the same cache)
+ * staleTime is set to 0 so that progress fields (learn_progress,
+ * lesson_progress, module_progress, duration_progress) are always
+ * re-fetched from the server when the component mounts — this ensures
+ * the Learn page progress card reflects the latest values after a lesson
+ * is completed without needing manual invalidation timing tricks.
+ *
+ * gcTime is kept at 15 min so the cached value is still shown instantly
+ * while the background refetch is in flight (no flash of 0%).
  *
  * Usage:
  *   const { data: user, isLoading, isError } = useUserDetail();
@@ -32,18 +34,21 @@ export const useUserDetail = (userId?: string | number) => {
       try {
         return await getUserDetailApi(id);
       } catch (err) {
-        // Import parseApiError lazily to avoid circular dep issues
         const { parseApiError } = await import("../../utils/parseApiError");
         throw parseApiError(err);
       }
     },
 
-    // Only run the query if we actually have a userId
     enabled: Boolean(id),
 
-    // Keep user data fresh — 5 min stale, 10 min cache (inherited from queryClient)
-    // Override here if you want more aggressive caching for the header:
-    staleTime: 1000 * 60 * 5,   // 5 minutes
-    gcTime: 1000 * 60 * 15,     // 15 minutes — user profile rarely changes
+    // 0 = always considered stale, so React Query refetches in the background
+    // every time any component using this hook mounts or the window regains focus.
+    // The previously cached value is still returned immediately (no loading flash)
+    // while the fresh fetch is in flight — best of both worlds.
+    staleTime: 0,
+
+    // Keep the cached value in memory for 15 min so navigating back to any
+    // page that uses this hook shows data instantly before the refetch completes.
+    gcTime: 1000 * 60 * 15,
   });
 };

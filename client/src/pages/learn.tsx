@@ -201,7 +201,7 @@ function ModuleCard({
                 >
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 border ${
-                      lesson.status ? "bg-primary/10 border-primary/30" : "bg-muted"
+                      lesson.status ? "bg-primary/10 border-primary/30" : "bg-muted border-border"
                     }`}
                   >
                     {lesson.status ? (
@@ -288,10 +288,7 @@ export default function Learn() {
   const { data: user, refetch: refetchUser } = useUserDetail();
   const userId = user?.id;
 
-  // ── Force-refetch all progress data every time this page mounts ───────────
-  // This is the key fix: wouter SPA navigation doesn't trigger visibilitychange,
-  // but it DOES remount the component when returning from /lesson/:id.
-  // By calling refetch directly on mount we always get fresh server data.
+  // ── Force-refetch on every mount (returns from /lesson/:id) ───────────────
   useEffect(() => {
     refetchUser();
     queryClient.invalidateQueries({ queryKey: moduleKeys.all });
@@ -300,24 +297,13 @@ export default function Learn() {
 
   const isLoading = modulesLoading || lessonsLoading;
 
-  const handleLessonNavigate = (lessonId: string) => {
-    setLocation(`/lesson/${lessonId}`);
-  };
-
-  const handleModuleExpand = (_moduleId: string) => {
-    if (userId) {
-      queryClient.invalidateQueries({ queryKey: userKeys.detail(userId) });
-      queryClient.invalidateQueries({ queryKey: moduleKeys.all });
-    }
-  };
-
-  // ── Progress values from user detail (backend-computed) ───────────────────
-  const learnProgress = Number(user?.learn_progress) || 0;
-  const moduleProgress = Number(user?.module_progress) || 0;
+  // ── Raw values from backend (strings or null) ─────────────────────────────
+  // lesson_progress and module_progress come back as strings e.g. "1"
+  // learn_progress and duration_progress come back as null — computed below
   const lessonProgress = Number(user?.lesson_progress) || 0;
-  const durationProgress = Number(user?.duration_progress) || 0;
+  const moduleProgress = Number(user?.module_progress) || 0;
 
-  // ── Totals from API ───────────────────────────────────────────────────────
+  // ── Totals from the lessons/modules list APIs ─────────────────────────────
   const totalModules = modules.length;
   const totalLessons = lessons.length;
   const totalDuration = modules.reduce(
@@ -325,6 +311,20 @@ export default function Learn() {
     0
   );
 
+  // ── Compute overall progress on the frontend ──────────────────────────────
+  // Backend returns learn_progress: null and duration_progress: null
+  // so we derive them ourselves from the counts we do have.
+  //
+  // learnProgress  = average of lesson% and module% (equal weight)
+  // durationProgress = lessonProgress (best proxy since duration_progress is null)
+  const lessonPct = totalLessons > 0 ? (lessonProgress / totalLessons) * 100 : 0;
+  const modulePct = totalModules > 0 ? (moduleProgress / totalModules) * 100 : 0;
+  const learnProgress = totalLessons > 0
+    ? Math.round((lessonPct + modulePct) / 2)
+    : 0;
+  const durationProgress = lessonProgress; // proxy until backend computes this
+
+  // ── Split modules into level buckets ──────────────────────────────────────
   const levelGroups = splitIntoLevels(modules);
 
   const beginnerLessonCount = levelGroups.beginner.reduce(
@@ -346,6 +346,20 @@ export default function Learn() {
         beginnerLessonCount + intermediateLessonCount > 0
       );
     return true;
+  };
+
+  const handleLessonNavigate = (lessonId: string) => {
+    if (userId) {
+      queryClient.invalidateQueries({ queryKey: userKeys.detail(userId) });
+    }
+    setLocation(`/lesson/${lessonId}`);
+  };
+
+  const handleModuleExpand = (_moduleId: string) => {
+    if (userId) {
+      queryClient.invalidateQueries({ queryKey: userKeys.detail(userId) });
+      queryClient.invalidateQueries({ queryKey: moduleKeys.all });
+    }
   };
 
   const achievementUnlocked = [
@@ -396,6 +410,7 @@ export default function Learn() {
             <div className="flex items-center justify-between gap-3 mb-3">
               <div>
                 <p className="text-sm text-muted-foreground">Your Progress</p>
+                {/* learnProgress is now frontend-computed so it's never null */}
                 <p className="text-2xl font-bold">{learnProgress}%</p>
               </div>
               <div className="flex items-center gap-3">
@@ -415,50 +430,36 @@ export default function Learn() {
                 <div className="w-px h-8 bg-border" />
                 <div className="text-center">
                   <p className="text-lg font-bold">
-                    {isLoading ? "–" : `${durationProgress}/${totalDuration || 0}`}
+                    {isLoading ? "–" : `${durationProgress}/${totalLessons}`}
                   </p>
                   <p className="text-xs text-muted-foreground">Days</p>
                 </div>
               </div>
             </div>
+
+            {/* Overall progress bar — driven by learnProgress */}
             <Progress value={learnProgress} className="h-2" />
+
+            {/* Breakdown sub-bars */}
             {!isLoading && (
-              <div className="mt-3 grid grid-cols-3 gap-3">
+              <div className="mt-3 grid grid-cols-2 gap-3">
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-[10px] text-muted-foreground">Tracks</span>
                     <span className="text-[10px] text-muted-foreground">
-                      {totalModules > 0 ? Math.round((moduleProgress / totalModules) * 100) : 0}%
+                      {Math.round(modulePct)}%
                     </span>
                   </div>
-                  <Progress
-                    value={totalModules > 0 ? (moduleProgress / totalModules) * 100 : 0}
-                    className="h-1"
-                  />
+                  <Progress value={modulePct} className="h-1" />
                 </div>
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-[10px] text-muted-foreground">Lessons</span>
                     <span className="text-[10px] text-muted-foreground">
-                      {totalLessons > 0 ? Math.round((lessonProgress / totalLessons) * 100) : 0}%
+                      {Math.round(lessonPct)}%
                     </span>
                   </div>
-                  <Progress
-                    value={totalLessons > 0 ? (lessonProgress / totalLessons) * 100 : 0}
-                    className="h-1"
-                  />
-                </div>
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-[10px] text-muted-foreground">Days</span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {totalDuration > 0 ? Math.round((durationProgress / totalDuration) * 100) : 0}%
-                    </span>
-                  </div>
-                  <Progress
-                    value={totalDuration > 0 ? (durationProgress / totalDuration) * 100 : 0}
-                    className="h-1"
-                  />
+                  <Progress value={lessonPct} className="h-1" />
                 </div>
               </div>
             )}
