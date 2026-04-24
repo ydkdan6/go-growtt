@@ -25,7 +25,7 @@ import {
 import { useBooks } from "@/hooks/general/useBooks";
 import type { Book } from "@/types/general.types";
 
-// ─── Skeleton card for loading state ─────────────────────────────────────────
+//  ─ Skeleton card for loading state                     ─
 function BookCardSkeleton() {
   return (
     <Card className="border">
@@ -83,7 +83,7 @@ export default function Books() {
 
       <main className="max-w-lg lg:max-w-4xl xl:max-w-6xl mx-auto px-4 lg:px-6 pt-5 lg:pt-6 space-y-5">
 
-        {/* ── Title ── */}
+        {/*   Title   */}
         <div>
           <h1 className="text-2xl font-bold mb-1" data-testid="text-books-title">
             Investment Books
@@ -93,7 +93,7 @@ export default function Books() {
           </p>
         </div>
 
-        {/* ── Category filters — derived from API tags ── */}
+        {/*   Category filters — derived from API tags   */}
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
           {categories.map((cat) => (
             <Button
@@ -109,7 +109,7 @@ export default function Books() {
           ))}
         </div>
 
-        {/* ── Error state ── */}
+        {/*   Error state   */}
         {isError && (
           <div className="flex flex-col items-center gap-3 py-12 text-center">
             <AlertCircle className="w-10 h-10 text-destructive" />
@@ -120,7 +120,7 @@ export default function Books() {
           </div>
         )}
 
-        {/* ── Loading skeletons ── */}
+        {/*   Loading skeletons   */}
         {isLoading && (
           <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -129,7 +129,7 @@ export default function Books() {
           </div>
         )}
 
-        {/* ── Book list ── */}
+        {/*   Book list   */}
         {!isLoading && !isError && (
           <>
             {filteredBooks.length === 0 ? (
@@ -194,7 +194,7 @@ export default function Books() {
 
       <BottomNav currentPage="learn" />
 
-      {/* ── Book Detail Sheet ── */}
+      {/*   Book Detail Sheet   */}
       <Sheet
         open={sheetOpen}
         onOpenChange={(open) => { setSheetOpen(open); if (!open) setSelectedBook(null); }}
@@ -241,7 +241,7 @@ export default function Books() {
                   </div>
                 </div>
 
-                {/* ── Stats row ── */}
+                {/*   Stats row   */}
                 <div className="flex gap-3">
                   <Card className="flex-1 border">
                     <CardContent className="p-3 text-center">
@@ -266,7 +266,7 @@ export default function Books() {
                   </Card>
                 </div>
 
-                {/* ── Description ── */}
+                {/*   Description   */}
                 <section>
                   <h4 className="font-semibold text-sm mb-2">About This Book</h4>
                   <p
@@ -278,7 +278,7 @@ export default function Books() {
                 </section>
               </div>
 
-              {/* ── CTA ── */}
+              {/*   CTA   */}
               <div className="p-5 pt-3 border-t bg-background">
                 {selectedBook.locked ? (
                   <div className="space-y-2">

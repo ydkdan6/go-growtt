@@ -29,7 +29,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { userKeys } from "@/config/queryKeys";
 import type { Module } from "@/types/general.types";
 
-// ─── Levels config ────────────────────────────────────────────────────────────
+//  ─ Levels config                               
 const LEVELS = [
   {
     id: "beginner",
@@ -65,7 +65,7 @@ const splitIntoLevels = (modules: Module[]): Record<string, Module[]> => {
   };
 };
 
-// ─── Achievements config ──────────────────────────────────────────────────────
+//  ─ Achievements config                            
 const achievements = [
   { name: "First Steps", description: "Complete your first lesson", icon: GraduationCap },
   { name: "Bookworm", description: "Read 5 investment books", icon: BookOpen },
@@ -73,7 +73,7 @@ const achievements = [
   { name: "Champion", description: "Complete all courses", icon: Trophy },
 ];
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+//  ─ Skeleton                                 ─
 function ModuleCardSkeleton() {
   return (
     <Card className="border">
@@ -89,7 +89,7 @@ function ModuleCardSkeleton() {
   );
 }
 
-// ─── ModuleCard ───────────────────────────────────────────────────────────────
+//  ─ ModuleCard                                ─
 function ModuleCard({
   module,
   userId,
@@ -271,7 +271,7 @@ function ModuleCard({
   );
 }
 
-// ─── Main Learn page ──────────────────────────────────────────────────────────
+//  ─ Main Learn page                              
 export default function Learn() {
   const [, setLocation] = useLocation();
   const [activeLevel, setActiveLevel] = useState("all");
@@ -288,7 +288,7 @@ export default function Learn() {
   const { data: user, refetch: refetchUser } = useUserDetail();
   const userId = user?.id;
 
-  // ── Force-refetch on every mount (returns from /lesson/:id) ───────────────
+  //   Force-refetch on every mount (returns from /lesson/:id)        ─
   useEffect(() => {
     refetchUser();
     queryClient.invalidateQueries({ queryKey: moduleKeys.all });
@@ -297,13 +297,13 @@ export default function Learn() {
 
   const isLoading = modulesLoading || lessonsLoading;
 
-  // ── Raw values from backend (strings or null) ─────────────────────────────
+  //   Raw values from backend (strings or null)               ─
   // lesson_progress and module_progress come back as strings e.g. "1"
   // learn_progress and duration_progress come back as null — computed below
   const lessonProgress = Number(user?.lesson_progress) || 0;
   const moduleProgress = Number(user?.module_progress) || 0;
 
-  // ── Totals from the lessons/modules list APIs ─────────────────────────────
+  //   Totals from the lessons/modules list APIs               ─
   const totalModules = modules.length;
   const totalLessons = lessons.length;
   const totalDuration = modules.reduce(
@@ -311,7 +311,7 @@ export default function Learn() {
     0
   );
 
-  // ── Compute overall progress on the frontend ──────────────────────────────
+  //   Compute overall progress on the frontend                
   // Backend returns learn_progress: null and duration_progress: null
   // so we derive them ourselves from the counts we do have.
   //
@@ -324,7 +324,7 @@ export default function Learn() {
     : 0;
   const durationProgress = lessonProgress; // proxy until backend computes this
 
-  // ── Split modules into level buckets ──────────────────────────────────────
+  //   Split modules into level buckets                    
   const levelGroups = splitIntoLevels(modules);
 
   const beginnerLessonCount = levelGroups.beginner.reduce(
@@ -404,7 +404,7 @@ export default function Learn() {
 
       <main className="max-w-lg lg:max-w-4xl xl:max-w-6xl mx-auto px-4 lg:px-6 pt-5 lg:pt-6 space-y-6">
 
-        {/* ── Progress stats card ── */}
+        {/*   Progress stats card   */}
         <Card className="border bg-gradient-to-r from-primary/10 to-primary/5">
           <CardContent className="p-4">
             <div className="flex items-center justify-between gap-3 mb-3">
@@ -466,7 +466,7 @@ export default function Learn() {
           </CardContent>
         </Card>
 
-        {/* ── Daily Goal ── */}
+        {/*   Daily Goal   */}
         <Card className="border">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -486,7 +486,7 @@ export default function Learn() {
           </CardContent>
         </Card>
 
-        {/* ── Level filter tabs ── */}
+        {/*   Level filter tabs   */}
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
           <Button
             variant={activeLevel === "all" ? "default" : "outline"}
@@ -516,7 +516,7 @@ export default function Learn() {
           })}
         </div>
 
-        {/* ── Error state ── */}
+        {/*   Error state   */}
         {modulesError && (
           <div className="flex flex-col items-center gap-3 py-12 text-center">
             <AlertCircle className="w-10 h-10 text-destructive" />
@@ -527,7 +527,7 @@ export default function Learn() {
           </div>
         )}
 
-        {/* ── Skeletons ── */}
+        {/*   Skeletons   */}
         {isLoading && (
           <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -536,7 +536,7 @@ export default function Learn() {
           </div>
         )}
 
-        {/* ── Level sections ── */}
+        {/*   Level sections   */}
         {!isLoading && !modulesError && (
           <>
             {modules.length === 0 ? (
@@ -580,7 +580,7 @@ export default function Learn() {
           </>
         )}
 
-        {/* ── Achievements ── */}
+        {/*   Achievements   */}
         <section>
           <h3 className="font-semibold text-lg mb-3">Achievements</h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">

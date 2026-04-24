@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
 import type { OnboardingPayload, OnboardingStepPayload } from "@/types/general.types";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+//  ─ Types                                  ─
 
 interface OnboardingContextValue {
   /** All accumulated answers so far */
@@ -15,7 +15,7 @@ interface OnboardingContextValue {
   reset: () => void;
 }
 
-// ─── Required fields — all 13 onboarding fields ──────────────────────────────
+//  ─ Required fields — all 13 onboarding fields                
 
 const REQUIRED_FIELDS: (keyof OnboardingPayload)[] = [
   "financial_literacy_level",
@@ -33,11 +33,11 @@ const REQUIRED_FIELDS: (keyof OnboardingPayload)[] = [
   "age_group",
 ];
 
-// ─── Context ─────────────────────────────────────────────────────────────────
+//  ─ Context                                 ─
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
 
-// ─── Provider ────────────────────────────────────────────────────────────────
+//  ─ Provider                                 
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [answers, setAnswers] = useState<OnboardingStepPayload>({});
@@ -61,7 +61,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// ─── Hook ────────────────────────────────────────────────────────────────────
+//  ─ Hook                                   
 
 export function useOnboardingContext() {
   const ctx = useContext(OnboardingContext);

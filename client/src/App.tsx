@@ -11,6 +11,7 @@ import { SidebarProvider } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/app-sidebar";
 import NotFound from "./pages/not-found";
 import Home from "./pages/home";
+import PaymentCallback from "./components/Paystackcallback";
 import Course from "./pages/course";
 import Learn from "./pages/learn";
 import LessonDetail from "./pages/LessonDetail";
@@ -45,7 +46,7 @@ import OnboardingStep11 from "./pages/Onboarding/OnboardingStep11";
 import OnboardingStep12 from "./pages/Onboarding/OnboardingStep12";
 import OnboardingStep13 from "./pages/Onboarding/OnboardingStep13";
 
-// ─── Auth check ───────────────────────────────────────────────────────────────
+//  ─ Auth check                                ─
 // Authenticated = has token + user_id in localStorage (set by signInApi)
 const isAuthenticated = (): boolean => {
   return !!(
@@ -54,7 +55,7 @@ const isAuthenticated = (): boolean => {
   );
 };
 
-// ─── ProtectedRoute ───────────────────────────────────────────────────────────
+//  ─ ProtectedRoute                              ─
 // Redirects unauthenticated users to "/" (Login).
 function ProtectedRoute({ component: Component }: { component: () => JSX.Element }) {
   if (!isAuthenticated()) {
@@ -66,14 +67,14 @@ function ProtectedRoute({ component: Component }: { component: () => JSX.Element
 function Router() {
   return (
     <Switch>
-      {/* ── Public ── */}
+      {/*   Public   */}
       <Route path="/" component={Login} />
       <Route path="/signup" component={SignUp} />
       <Route path="/verify" component={Verify} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
 
-      {/* ── Protected: Onboarding ── */}
+      {/*   Protected: Onboarding   */}
       <Route path="/onboarding">{() => <ProtectedRoute component={OnboardingInitial} />}</Route>
       <Route path="/Onboarding/step1">{() => <ProtectedRoute component={OnboardingStep1} />}</Route>
       <Route path="/Onboarding/step2">{() => <ProtectedRoute component={OnboardingStep2} />}</Route>
@@ -89,7 +90,7 @@ function Router() {
       <Route path="/Onboarding/step12">{() => <ProtectedRoute component={OnboardingStep12} />}</Route>
       <Route path="/Onboarding/step13">{() => <ProtectedRoute component={OnboardingStep13} />}</Route>
 
-      {/* ── Protected: App ── */}
+      {/*   Protected: App   */}
       <Route path="/dashboard">{() => <ProtectedRoute component={Home} />}</Route>
       <Route path="/course/:id">{() => <ProtectedRoute component={Course} />}</Route>
       <Route path="/learn">{() => <ProtectedRoute component={Learn} />}</Route>
@@ -101,6 +102,7 @@ function Router() {
       <Route path="/news">{() => <ProtectedRoute component={News} />}</Route>
       <Route path="/books">{() => <ProtectedRoute component={Books} />}</Route>
       <Route path="/growtt-ai">{() => <ProtectedRoute component={GrowttAI} />}</Route>
+      <Route path="/payment/verify">{() => <ProtectedRoute component={PaymentCallback} />}</Route>
 
       <Route component={NotFound} />
     </Switch>

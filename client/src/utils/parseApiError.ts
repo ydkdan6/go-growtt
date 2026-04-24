@@ -10,16 +10,16 @@ export const parseApiError = (error: unknown): string => {
     const data = error.response?.data as ApiErrorResponse | undefined;
 
     if (data) {
-      // ── DRF non_field_errors ──────────────────────────────────────────────
+      //   DRF non_field_errors                        
       if (data.non_field_errors?.length) {
         return data.non_field_errors[0];
       }
 
-      // ── Generic detail / message ──────────────────────────────────────────
+      //   Generic detail / message                      
       if (data.detail) return data.detail;
       if (data.message) return data.message;
 
-      // ── Field-level errors — check email first for duplicate detection ────
+      //   Field-level errors — check email first for duplicate detection   
       // DRF returns: { "email": ["user with this email address already exists."] }
       if (Array.isArray(data.email) && data.email.length > 0) {
         return `email: ${data.email[0]}`;
@@ -31,7 +31,7 @@ export const parseApiError = (error: unknown): string => {
         return `confirm_password: ${data.confirm_password[0]}`;
       }
 
-      // ── Any other field-level error ───────────────────────────────────────
+      //   Any other field-level error                    ─
       const fieldErrors = Object.entries(data).find(
         ([, value]) => Array.isArray(value) && (value as unknown[]).length > 0
       );
@@ -40,12 +40,12 @@ export const parseApiError = (error: unknown): string => {
         return `${field}: ${(messages as string[])[0]}`;
       }
 
-      // ── { "error": "..." } — Django commonly uses this key ─────
+      //   { "error": "..." } — Django commonly uses this key   ─
       if (typeof (data as any).error === "string" && (data as any).error.length > 0) {
         return (data as any).error;
       }
 
-      // ── Any other flat string value ─────────────────────────────────
+      //   Any other flat string value                 ─
       const stringEntry = Object.entries(data).find(
         ([, value]) => typeof value === "string" && (value as string).length > 0
       );
@@ -54,7 +54,7 @@ export const parseApiError = (error: unknown): string => {
       }
     }
 
-    // ── HTTP status fallbacks ─────────────────────────────────────────────
+    //   HTTP status fallbacks                       ─
     if (error.response?.status === 400) {
       // 400 with unreadable body — try to stringify whatever came back
       if (data) {

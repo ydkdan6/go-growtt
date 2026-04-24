@@ -29,7 +29,7 @@ export default function LessonDetail() {
   const { data: user } = useUserDetail();
   const userId = user?.id;
 
-  // ── Two fetches: base lesson data + tracked status ────────────────────────
+  //   Two fetches: base lesson data + tracked status             
   // useLessonById → content, title, duration etc (no auth/tracking)
   // useLessonTrack → same fields BUT includes real `status` from the backend
   const { data: lesson, isLoading: lessonLoading, isError } = useLessonById(id);
@@ -43,7 +43,7 @@ export default function LessonDetail() {
   // Use tracked data when available so status is always accurate
   const displayLesson = trackedLesson ?? lesson;
 
-  // ── Completion state ──────────────────────────────────────────────────────
+  //   Completion state                            
   // Seed initial value from tracked backend status so already-done lessons
   // show as complete immediately without re-triggering the timer
   const [isCompleted, setIsCompleted] = useState(false);
@@ -59,7 +59,7 @@ export default function LessonDetail() {
     }
   }, [trackedLesson?.status]);
 
-  // ── Invalidate all progress caches ───────────────────────────────────────
+  //   Invalidate all progress caches                    ─
   const bustCaches = async (uid: string | number) => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: userKeys.detail(uid) }),
@@ -72,7 +72,7 @@ export default function LessonDetail() {
     queryClient.refetchQueries({ queryKey: userKeys.detail(uid) });
   };
 
-  // ── Mark complete via PUT ─────────────────────────────────────────────────
+  //   Mark complete via PUT                         ─
   const markComplete = async () => {
     if (!lesson || !userId || hasTriggered.current) return;
     hasTriggered.current = true;
@@ -97,7 +97,7 @@ export default function LessonDetail() {
     }
   };
 
-  // ── Start silent background timer once both lesson + userId are ready ─────
+  //   Start silent background timer once both lesson + userId are ready   ─
   useEffect(() => {
     // Don't start if already completed, already triggered, or data not ready
     if (!lesson || !userId || hasTriggered.current) return;
@@ -116,7 +116,7 @@ export default function LessonDetail() {
     };
   }, [lesson?.id, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Bust caches on unmount so Learn page is always fresh on back ──────────
+  //   Bust caches on unmount so Learn page is always fresh on back      
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -126,7 +126,7 @@ export default function LessonDetail() {
 
   const handleBack = () => history.back();
 
-  // ── Loading ───────────────────────────────────────────────────────────────
+  //   Loading                                ─
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -138,7 +138,7 @@ export default function LessonDetail() {
     );
   }
 
-  // ── Error ─────────────────────────────────────────────────────────────────
+  //   Error                                 ─
   if (isError || !lesson) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
@@ -167,7 +167,7 @@ export default function LessonDetail() {
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      {/* ── Header ── */}
+      {/*   Header   */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
         <div className="max-w-lg lg:max-w-4xl xl:max-w-6xl mx-auto px-4 lg:px-6 py-3 flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={handleBack}>
@@ -180,7 +180,7 @@ export default function LessonDetail() {
             <span className="font-semibold line-clamp-1">{displayLesson?.title}</span>
           </div>
 
-          {/* ── Completion badge in header ── */}
+          {/*   Completion badge in header   */}
           {isCompleted ? (
             <Badge className="gap-1 flex-shrink-0 bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20">
               <CheckCircle2 className="w-3 h-3" />
@@ -203,7 +203,7 @@ export default function LessonDetail() {
 
       <main className="max-w-lg lg:max-w-4xl xl:max-w-6xl mx-auto px-4 lg:px-6 pt-5 lg:pt-6 space-y-5">
 
-        {/* ── Completion banner — prominent, shown right at the top ── */}
+        {/*   Completion banner — prominent, shown right at the top   */}
         {isCompleted && (
           <Card className="border-0 bg-primary/10">
             <CardContent className="p-4 flex items-center gap-3">
@@ -220,7 +220,7 @@ export default function LessonDetail() {
           </Card>
         )}
 
-        {/* ── Title + meta ── */}
+        {/*   Title + meta   */}
         <div className="space-y-3">
           <div className="flex items-start gap-2">
             <h1 className="text-2xl font-bold leading-tight flex-1">
@@ -265,7 +265,7 @@ export default function LessonDetail() {
           </div>
         </div>
 
-        {/* ── Lesson content ── */}
+        {/*   Lesson content   */}
         <Card className={`border ${isCompleted ? "border-primary/20" : ""}`}>
           <CardContent className="p-5">
             <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
@@ -274,7 +274,7 @@ export default function LessonDetail() {
           </CardContent>
         </Card>
 
-        {/* ── Seeds required ── */}
+        {/*   Seeds required   */}
         <Card className="border bg-primary/5">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -292,7 +292,7 @@ export default function LessonDetail() {
           </CardContent>
         </Card>
 
-        {/* ── Back button ── */}
+        {/*   Back button   */}
         <Button
           variant={isCompleted ? "default" : "outline"}
           className="w-full"

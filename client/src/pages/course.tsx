@@ -18,7 +18,7 @@ export default function Course({ params }: { params: { id: string } }) {
 
   const { data: module, isLoading, isError } = useModuleById(params?.id ?? "");
 
-  // ── Loading ──────────────────────────────────────────────────────────────
+  //   Loading                                
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -30,7 +30,7 @@ export default function Course({ params }: { params: { id: string } }) {
     );
   }
 
-  // ── Not found / error ────────────────────────────────────────────────────
+  //   Not found / error                           
   if (isError || !module) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
@@ -53,14 +53,14 @@ export default function Course({ params }: { params: { id: string } }) {
     );
   }
 
-  // ── Derived ───────────────────────────────────────────────────────────────
+  //   Derived                                ─
   const lessons        = module.lessons ?? [];
   const totalLessons   = lessons.length || module.lessonCount || 0;
   const totalSeeds     = module.requiredSeed;
   const completedCount = 0; // per-lesson tracking not yet on backend
   const progressPct    = totalLessons > 0 ? (completedCount / totalLessons) * 100 : 0;
 
-  // ── Completion screen ─────────────────────────────────────────────────────
+  //   Completion screen                           ─
   if (courseCompleted) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
@@ -131,7 +131,7 @@ export default function Course({ params }: { params: { id: string } }) {
     );
   }
 
-  // ── Main view ─────────────────────────────────────────────────────────────
+  //   Main view                               ─
   return (
     <div className="min-h-screen bg-background pb-8">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">

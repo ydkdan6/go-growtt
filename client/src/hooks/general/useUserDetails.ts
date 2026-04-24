@@ -3,7 +3,7 @@ import { getUserDetailApi } from "../../api/general.api";
 import { userKeys } from "@/config/queryKeys";
 import type { UserDetail } from "../../types/general.types";
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
+//  ─ Helper                                  ─
 export const getStoredUserId = (): string =>
   localStorage.getItem("user_id") ?? "";
 

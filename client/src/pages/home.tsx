@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../components/ui/s
 import { Progress } from "../components/ui/progress";
 import { ThemeToggle } from "../components/theme-toggle";
 import { BottomNav } from "../components/bottom-nav";
+import { BuySeedsSheet } from "@/components/BuySeedsheet";
 import {
   Wallet, Plus, ArrowUpRight, TrendingUp, Bitcoin, Building2, Rocket,
   Sparkles, BookOpen, Users, Sprout, Lock, ChevronRight, GraduationCap,
@@ -85,15 +86,14 @@ const professionalQuizQuestions = [
   },
 ];
 
-// ─── Module icon mapping — map module title keywords to icons ─────────────────
+//  ─ Module icon mapping                            ─
 const getModuleIcon = (title: string) => {
   const t = title.toLowerCase();
-  if (t.includes("stock") || t.includes("equity"))  return { icon: TrendingUp,  color: "bg-blue-500/10 dark:bg-blue-500/20",    iconColor: "text-blue-600 dark:text-blue-400" };
-  if (t.includes("crypto") || t.includes("bitcoin")) return { icon: Bitcoin,     color: "bg-orange-500/10 dark:bg-orange-500/20", iconColor: "text-orange-600 dark:text-orange-400" };
+  if (t.includes("stock") || t.includes("equity"))   return { icon: TrendingUp, color: "bg-blue-500/10 dark:bg-blue-500/20",    iconColor: "text-blue-600 dark:text-blue-400"    };
+  if (t.includes("crypto") || t.includes("bitcoin")) return { icon: Bitcoin,    color: "bg-orange-500/10 dark:bg-orange-500/20", iconColor: "text-orange-600 dark:text-orange-400" };
   if (t.includes("real estate") || t.includes("property")) return { icon: Building2, color: "bg-emerald-500/10 dark:bg-emerald-500/20", iconColor: "text-emerald-600 dark:text-emerald-400" };
-  if (t.includes("angel") || t.includes("startup")) return { icon: Rocket,      color: "bg-purple-500/10 dark:bg-purple-500/20", iconColor: "text-purple-600 dark:text-purple-400" };
-  if (t.includes("portfolio") || t.includes("fund")) return { icon: BarChart3,   color: "bg-indigo-500/10 dark:bg-indigo-500/20", iconColor: "text-indigo-600 dark:text-indigo-400" };
-  // fallback
+  if (t.includes("angel") || t.includes("startup"))  return { icon: Rocket,     color: "bg-purple-500/10 dark:bg-purple-500/20", iconColor: "text-purple-600 dark:text-purple-400" };
+  if (t.includes("portfolio") || t.includes("fund")) return { icon: BarChart3,  color: "bg-indigo-500/10 dark:bg-indigo-500/20", iconColor: "text-indigo-600 dark:text-indigo-400" };
   return { icon: TrendingUp, color: "bg-primary/10", iconColor: "text-primary" };
 };
 
@@ -106,43 +106,38 @@ export default function Home() {
   const [quizAnswers, setQuizAnswers]                   = useState<Record<number, string>>({});
   const [isProfessional, setIsProfessional]             = useState(false);
   const [showSeedsDashboard, setShowSeedsDashboard]     = useState(false);
+  const [showBuySeeds, setShowBuySeeds]                 = useState(false);  // ← new
   const [activeWalletCard, setActiveWalletCard]         = useState(0);
   const walletScrollRef = useRef<HTMLDivElement>(null);
 
-  // ── API data ────────────────────────────────────────────────────────────
-  const { data: user }                                  = useUserDetail();
-  const { data: books = [], isLoading: booksLoading }   = useBooks();
+  //   API data                               
+  const { data: user }                                    = useUserDetail();
+  const { data: books = [], isLoading: booksLoading }     = useBooks();
   const { data: modules = [], isLoading: modulesLoading } = useModules();
 
-  // ── Derived user values ──────────────────────────────────────────────────
+  //   Derived user values                          
   const displayName =
     user?.full_name ||
     (user?.first_name ? `${user.first_name} ${user.last_name}`.trim() : null) ||
     user?.username ||
     "";
 
-  // Seeds — wallet_balance until a dedicated seeds field is added to API
-  const userSeeds    = Number(user?.wallet_balance) || 0;
-  const walletBalance = Number(user?.wallet_balance) || 0;
+  const userId       = user?.id ?? "";
+  const userSeeds    = Number(user?.seed_balance) || 0;
+  // const walletBalance = Number(user?.wallet_balance) || 0;
   const demoBalance   = Number(user?.demo_balance)   || 0;
-
-  // Level from financial_literacy_level onboarding field
-  const userLevel = user?.financial_literacy_level || "Beginner";
-
-  // Progress
+  const userLevel    = user?.financial_literacy_level || "Beginner";
   const lessonProgress = Number(user?.lesson_progress) || 0;
   const learnProgress  = Number(user?.learn_progress)  || 0;
 
-  // Avatar
   const BASE_API = "https://www.api.growtt.com";
   const avatarSrc = user?.image
     ? (user.image.startsWith("http") ? user.image : `${BASE_API}${user.image}`)
     : null;
 
-  // ── Show first 4 modules in "Start Learning" section ────────────────────
   const featuredModules = modules.slice(0, 4);
 
-  // ── Quiz logic ───────────────────────────────────────────────────────────
+  //   Quiz logic                              ─
   const calculateQuizScore = () =>
     professionalQuizQuestions.filter((q) => quizAnswers[q.id] === q.correctAnswer).length;
 
@@ -157,8 +152,6 @@ export default function Home() {
     setShowProfessionalQuiz(false);
   };
 
-  // const navigateToCourse = (moduleId: string) => setLocation(`/course/${moduleId}`);
-
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTipIndex((prev) => (prev + 1) % tipMessages.length);
@@ -168,33 +161,31 @@ export default function Home() {
 
   const CurrentTipIcon = tipMessages[currentTipIndex].icon;
 
+  //   Open buy seeds sheet (close dashboard first if open)         ─
+  const handleOpenBuySeeds = () => {
+    setShowSeedsDashboard(false);
+    setTimeout(() => setShowBuySeeds(true), 300);
+  };
+
   return (
     <div className="min-h-screen bg-background pb-24 lg:pb-8">
-      {/* ── Header ── */}
+      {/*   Header   */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b">
         <div className="max-w-lg lg:max-w-4xl xl:max-w-6xl mx-auto px-4 lg:px-6 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             {avatarSrc ? (
               <img src="/Growtt_Icon_Primary_1770990881558.jpg" alt={displayName} className="w-8 h-8 rounded-full object-cover" />
             ) : (
-<img
-            src="/Growtt_Icon_Primary_1770990881558.jpg"
-            alt="Growtt"
-            className="w-10 h-10 rounded-full object-cover"
-          />
-                      )}
+              <img src="/Growtt_Icon_Primary_1770990881558.jpg" alt="Growtt" className="w-10 h-10 rounded-full object-cover" />
+            )}
             <div>
               <p className="text-xs text-muted-foreground">Welcome back</p>
               {displayName && <p className="font-semibold text-sm">{displayName}</p>}
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" data-testid="button-search">
-              <Search className="w-5 h-5" />
-            </Button>
-            <Button variant="ghost" size="icon" data-testid="button-notifications">
-              <Bell className="w-5 h-5" />
-            </Button>
+            <Button variant="ghost" size="icon" data-testid="button-search"><Search className="w-5 h-5" /></Button>
+            <Button variant="ghost" size="icon" data-testid="button-notifications"><Bell className="w-5 h-5" /></Button>
             <ThemeToggle />
           </div>
         </div>
@@ -202,7 +193,7 @@ export default function Home() {
 
       <main className="max-w-lg lg:max-w-4xl xl:max-w-6xl mx-auto px-4 lg:px-6 pt-4 lg:pt-6 space-y-5 lg:space-y-6">
 
-        {/* ── Level Badge — from financial_literacy_level ── */}
+        {/*   Level + Seeds badges   */}
         <div className="flex items-center gap-3">
           <Badge
             variant={isProfessional ? "outline" : "secondary"}
@@ -221,7 +212,7 @@ export default function Home() {
         </div>
 
         <div className="lg:grid lg:grid-cols-2 lg:gap-6 space-y-5 lg:space-y-0">
-          {/* ── Wallet carousel ── */}
+          {/*   Demo Balance Card   */}
           <div className="relative">
             <div
               ref={walletScrollRef}
@@ -232,29 +223,6 @@ export default function Home() {
               }}
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              {/* Wallet Balance Card — from user.wallet_balance */}
-              {/* <Card className="border-0 bg-growtt-wallet dark:bg-growtt-wallet overflow-visible rounded-2xl flex-shrink-0 w-full snap-center" data-testid="card-wallet-balance">
-                <CardContent className="p-5 lg:p-6">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Wallet className="w-4 h-4 text-foreground/60" />
-                    <p className="text-foreground/70 text-sm font-medium">Wallet balance</p>
-                    <Eye className="w-4 h-4 text-foreground/60 ml-auto" />
-                  </div>
-                  <h2 className="text-3xl font-bold text-foreground mb-4">
-                    ₦{walletBalance.toLocaleString()}
-                  </h2>
-                  <div className="flex gap-3">
-                    <Button className="flex-1 bg-primary text-primary-foreground" onClick={() => setShowFundingDialog(true)} data-testid="button-add-funds">
-                      <Plus className="w-4 h-4 mr-1.5" />Add Funds
-                    </Button>
-                    <Button variant="outline" className="flex-1 bg-white/50 dark:bg-white/10 border-foreground/20 text-foreground" data-testid="button-withdraw">
-                      <ArrowUpRight className="w-4 h-4 mr-1.5" />Withdraw
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card> */}
-
-              {/* Demo Balance Card — from user.demo_balance */}
               <Card className="border-0 bg-growtt-wallet dark:bg-growtt-wallet overflow-visible rounded-2xl flex-shrink-0 w-full snap-center" data-testid="card-demo-balance">
                 <CardContent className="p-5 lg:p-6">
                   <div className="flex items-center gap-2 mb-1">
@@ -268,24 +236,21 @@ export default function Home() {
                   <p className="text-foreground/50 text-xs mb-1">Risk-free virtual funds to practice trading</p>
                   <p className="text-foreground/50 text-xs mb-3">Buy Seeds to Top up Funds</p>
                   <div className="flex gap-3">
-                    <Button className="flex-1 bg-primary text-primary-foreground" data-testid="button-invest-demo">
-                      <Play className="w-4 h-4 mr-1.5" />Buy Seeds
+                    {/* ← now opens BuySeedsSheet */}
+                    <Button
+                      className="flex-1 bg-primary text-primary-foreground"
+                      onClick={handleOpenBuySeeds}
+                      data-testid="button-buy-seeds-demo"
+                    >
+                      <Sprout className="w-4 h-4 mr-1.5" />Buy Seeds
                     </Button>
-                    {/* <Button variant="outline" className="bg-white/50 dark:bg-white/10 border-foreground/20 text-foreground" data-testid="button-reset-demo">
-                      Reset
-                    </Button> */}
                   </div>
                 </CardContent>
               </Card>
             </div>
-
-            {/* <div className="flex justify-center gap-2 mt-2">
-              <button className={`w-2 h-2 rounded-full transition-all ${activeWalletCard === 0 ? "bg-primary w-5" : "bg-muted-foreground/30"}`} onClick={() => walletScrollRef.current?.scrollTo({ left: 0, behavior: "smooth" })} data-testid="dot-wallet" />
-              <button className={`w-2 h-2 rounded-full transition-all ${activeWalletCard === 1 ? "bg-primary w-5" : "bg-muted-foreground/30"}`} onClick={() => walletScrollRef.current?.scrollTo({ left: walletScrollRef.current.scrollWidth / 2, behavior: "smooth" })} data-testid="dot-demo" />
-            </div> */}
           </div>
 
-          {/* ── Quick Actions ── */}
+          {/*   Quick Actions   */}
           <div className="flex gap-3 lg:flex-col lg:justify-center">
             <Button variant="outline" className="flex-1 h-auto py-3 lg:py-4 flex-col lg:flex-row gap-1 lg:gap-3 lg:justify-start bg-primary border-0 text-white hover:bg-growtt-ai/90" onClick={() => setLocation("/growtt-ai")} data-testid="button-growtt-ai">
               <Sparkles className="w-5 h-5" />
@@ -304,7 +269,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── Tips Banner ── */}
+        {/*   Tips Banner   */}
         <Card className="border bg-gradient-to-r from-primary/5 to-accent/5 hover-elevate cursor-pointer" data-testid={`tip-card-${currentTipIndex}`} onClick={() => setCurrentTipIndex((prev) => (prev + 1) % tipMessages.length)}>
           <CardContent className="p-4 flex items-center gap-4">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -319,7 +284,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {/* ── Start Learning — from /learn/modules/ API ── */}
+        {/*   Start Learning   */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-lg">Start Learning</h3>
@@ -365,7 +330,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── Books — already wired via useBooks() ── */}
+        {/*   Books   */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold flex items-center gap-2">
@@ -410,7 +375,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── Referrals ── */}
+        {/*   Referrals   */}
         <section>
           <Card className="border bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20">
             <CardContent className="p-4 flex items-center gap-4">
@@ -427,7 +392,7 @@ export default function Home() {
         </section>
       </main>
 
-      {/* ── Add Funds Dialog ── */}
+      {/*   Add Funds Dialog   */}
       <Dialog open={showFundingDialog} onOpenChange={setShowFundingDialog}>
         <DialogContent className="max-w-sm mx-auto">
           <DialogHeader>
@@ -458,7 +423,7 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Professional Quiz ── */}
+      {/*   Professional Quiz   */}
       <Dialog open={showProfessionalQuiz} onOpenChange={(open) => { if (!open) resetQuiz(); }}>
         <DialogContent className="max-w-sm mx-auto max-h-[85vh] overflow-y-auto">
           {quizStep === 0 && (
@@ -572,7 +537,7 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Seeds Dashboard Sheet ── */}
+      {/*   Seeds Dashboard Sheet   */}
       <Sheet open={showSeedsDashboard} onOpenChange={setShowSeedsDashboard}>
         <SheetContent side="bottom" className="h-[80vh] rounded-t-2xl p-0 flex flex-col">
           <SheetHeader className="p-5 pb-3">
@@ -607,7 +572,7 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* ── Progress stats from user detail ── */}
+            {/* Progress stats */}
             <div className="grid grid-cols-3 gap-3">
               <Card className="border">
                 <CardContent className="p-3 text-center">
@@ -629,7 +594,7 @@ export default function Home() {
               </Card>
             </div>
 
-            {/* Seed transactions remain static — no transactions endpoint yet */}
+            {/* Seed transactions (static until transactions endpoint is available) */}
             <section>
               <h4 className="font-semibold text-sm mb-3">Seed Transactions</h4>
               <div className="space-y-2">
@@ -659,12 +624,24 @@ export default function Home() {
           </div>
 
           <div className="p-5 pt-3 border-t bg-background">
-            <Button className="w-full" size="lg" data-testid="button-buy-seeds">
+            {/* ← opens BuySeedsSheet from inside the dashboard too */}
+            <Button className="w-full" size="lg" onClick={handleOpenBuySeeds} data-testid="button-buy-seeds">
               <Sprout className="w-5 h-5 mr-2" />Buy Seeds
             </Button>
           </div>
         </SheetContent>
       </Sheet>
+
+      {/*   Buy Seeds Sheet   */}
+      {userId && (
+        <BuySeedsSheet
+          open={showBuySeeds}
+          onOpenChange={setShowBuySeeds}
+          userId={userId}
+          currentSeeds={userSeeds}
+          currentDemoBalance={demoBalance}
+        />
+      )}
 
       <BottomNav currentPage="home" />
     </div>

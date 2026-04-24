@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSignUpWithParsedError } from "@/hooks/general/useSignUp";
 import { getErrorMessage } from "@/utils/getErrorMessage";
 
-// ─── Password criteria definitions ───────────────────────────────────────────
+//  ─ Password criteria definitions                      ─
 const PASSWORD_RULES = [
   { id: "length",    label: "At least 8 characters",          test: (p: string) => p.length >= 8 },
   { id: "uppercase", label: "At least one uppercase letter",  test: (p: string) => /[A-Z]/.test(p) },
@@ -82,7 +82,7 @@ export default function SignUp() {
     },
   });
 
-  // ─── Derived state ──────────────────────────────────────────────────────────
+  //  ─ Derived state                              
   const passwordStrength  = getPasswordStrength(password);
   const allRulesPassed    = PASSWORD_RULES.every(r => r.test(password));
   const passwordsMatch    = password === confirmPassword;
@@ -115,7 +115,7 @@ export default function SignUp() {
     <AuthLayout>
       <div className="h-full flex flex-col p-10">
 
-        {/* ── Tab switcher ── */}
+        {/*   Tab switcher   */}
         <div className="flex gap-7 mb-8">
           <Link to="/" className="flex-1">
             <AuthButton variant="secondary" fullWidth>Login</AuthButton>
@@ -125,13 +125,13 @@ export default function SignUp() {
           </Link>
         </div>
 
-        {/* ── Heading ── */}
+        {/*   Heading   */}
         <div className="flex flex-col gap-4 mb-8">
           <h2 className="text-[rgba(3,7,18,0.8)] text-xl leading-[130%] tracking-[-0.32px]">Get Started Today</h2>
           <p className="text-[rgba(3,7,18,0.8)] text-base leading-[150%]">Enter your details to get started.</p>
         </div>
 
-        {/* ── Form ── */}
+        {/*   Form   */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 mb-8">
 
           {/* Email */}
@@ -173,7 +173,7 @@ export default function SignUp() {
               </button>
             </div>
 
-            {/* ── Strength bar — shows once user starts typing ── */}
+            {/*   Strength bar — shows once user starts typing   */}
             {passwordTouched && password.length > 0 && (
               <div className="space-y-2">
                 <div className="flex gap-1 h-1.5">
@@ -199,7 +199,7 @@ export default function SignUp() {
                   </p>
                 )}
 
-                {/* ── Per-rule checklist ── */}
+                {/*   Per-rule checklist   */}
                 <ul className="space-y-1">
                   {PASSWORD_RULES.map((rule) => {
                     const passed = rule.test(password);
@@ -255,7 +255,7 @@ export default function SignUp() {
             <p className="text-red-500 text-sm">{getErrorMessage(error)}</p>
           )}
 
-          {/* ── Terms checkbox ── */}
+          {/*   Terms checkbox   */}
           <div className="flex flex-row gap-2">
             <div className="flex items-center gap-2">
               <button
@@ -285,7 +285,7 @@ export default function SignUp() {
           </AuthButton>
         </form>
 
-        {/* ── Footer ── */}
+        {/*   Footer   */}
         <div className="mt-auto text-center">
           <p className="text-[rgba(13,3,0,0.6)] text-base leading-[150%]">
             Already have an account?{" "}

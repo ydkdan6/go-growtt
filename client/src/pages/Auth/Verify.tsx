@@ -15,7 +15,7 @@ export default function Verify() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
-  // ── Read source and email once on mount — never re-read mid-session ───────
+  //   Read source and email once on mount — never re-read mid-session    ─
   const email         = useRef<string>(
     (window.history.state?.email as string) || sessionStorage.getItem("signup_email") || ""
   ).current;
@@ -29,19 +29,19 @@ export default function Verify() {
   const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // ── Focus first input on mount ────────────────────────────────────────────
+  //   Focus first input on mount                       
   useEffect(() => {
     inputRefs.current[0]?.focus();
   }, []);
 
-  // ── Countdown timer ───────────────────────────────────────────────────────
+  //   Countdown timer                            ─
   useEffect(() => {
     if (timeLeft <= 0) { setCanResend(true); return; }
     const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // ── Redirect after success — destination depends on source ────────────────
+  //   Redirect after success — destination depends on source         
   useEffect(() => {
     if (!showSuccess) return;
     const destination = fromLogin ? "/dashboard" : "/onboarding";
@@ -66,7 +66,7 @@ export default function Verify() {
     },
   });
 
-  // ── Input handlers ────────────────────────────────────────────────────────
+  //   Input handlers                             
   const handleChange = useCallback((index: number, value: string) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
       setCode((prev) => {
@@ -110,7 +110,7 @@ export default function Verify() {
     // TODO: call resend endpoint when available
   }, [canResend, toast]);
 
-  // ── Success redirect handler (manual Continue button) ─────────────────────
+  //   Success redirect handler (manual Continue button)           ─
   const handleSuccessContinue = useCallback(() => {
     const destination = fromLogin ? "/dashboard" : "/onboarding";
     sessionStorage.removeItem("verify_source");
@@ -215,7 +215,7 @@ export default function Verify() {
           </p>
         </div>
 
-        {/* ── Success overlay ── */}
+        {/*   Success overlay   */}
         {showSuccess && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4 py-6">
             <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md mx-auto overflow-hidden">

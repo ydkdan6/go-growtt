@@ -35,13 +35,13 @@ const AUTH_ENDPOINTS = {
   GET_USER:   (userId: string | number) => `/custom-user/get-user-detail/${userId}/`,
 } as const;
 
-// ─── Sign Up ──────────────────────────────────────────────────────────────────
+//  ─ Sign Up                                  
 export const signUpApi = async (payload: SignUpPayload): Promise<SignUpResponse> => {
   const { data } = await apiClient.post<SignUpResponse>(AUTH_ENDPOINTS.SIGN_UP, payload);
   return data;
 };
 
-// ─── Sign In ──────────────────────────────────────────────────────────────────
+//  ─ Sign In                                  
 export const signInApi = async (payload: SignInPayload): Promise<SignInResponse> => {
   const { data } = await apiClient.post<SignInResponse>(AUTH_ENDPOINTS.SIGN_IN, payload);
 
@@ -51,7 +51,7 @@ export const signInApi = async (payload: SignInPayload): Promise<SignInResponse>
   return data;
 };
 
-// ─── Forgotten Password ───────────────────────────────────────────────────────
+//  ─ Forgotten Password                            ─
 export const forgotPasswordApi = async (email: string): Promise<{ message: string }> => {
   const { data } = await apiClient.post("/custom-user/forgot-password/", { email });
   return data;
@@ -66,7 +66,7 @@ export const resetPasswordApi = async (payload: {
   return data;
 };
 
-// ─── Verify OTP ───────────────────────────────────────────────────────────────
+//  ─ Verify OTP                                ─
 export const verifyApi = async (payload: VerifyPayload): Promise<VerifyResponse> => {
   try {
     const { data } = await apiClient.post<VerifyResponse>(AUTH_ENDPOINTS.VERIFY, payload);
@@ -82,7 +82,7 @@ export const verifyApi = async (payload: VerifyPayload): Promise<VerifyResponse>
   }
 };
 
-// ─── Google Auth ──────────────────────────────────────────────────────────────
+//  ─ Google Auth                                
 export const googleAuthApi = async (payload: GoogleAuthPayload): Promise<GoogleAuthResponse> => {
   const { data } = await apiClient.post<GoogleAuthResponse>(AUTH_ENDPOINTS.GOOGLE_AUTH, payload);
 
@@ -93,7 +93,7 @@ export const googleAuthApi = async (payload: GoogleAuthPayload): Promise<GoogleA
   return data;
 };
 
-// ─── Onboarding (PUT) ─────────────────────────────────────────────────────────
+//  ─ Onboarding (PUT)                             ─
 export const onboardUserApi = async ({
   userId,
   payload,
@@ -105,19 +105,19 @@ export const onboardUserApi = async ({
   return data;
 };
 
-// ─── Get User Detail ──────────────────────────────────────────────────────────
+//  ─ Get User Detail                              
 export const getUserDetailApi = async (userId: string | number): Promise<UserDetail> => {
   const { data } = await apiClient.get<UserDetail>(AUTH_ENDPOINTS.GET_USER(userId));
   return data;
 };
 
-// ─── Books ────────────────────────────────────────────────────────────────────
+//  ─ Books                                   
 export const getBooksApi = async (): Promise<ApiBook[]> => {
   const { data } = await apiClient.get<ApiBook[]>("/book/book/");
   return data;
 };
 
-// ─── Lessons ──────────────────────────────────────────────────────────────────
+//  ─ Lessons                                  
 export const getLessonsApi = async (): Promise<ApiLesson[]> => {
   const { data } = await apiClient.get<ApiLesson[]>("/learn/lessons/");
   return data;
@@ -128,7 +128,7 @@ export const getLessonByIdApi = async (id: string): Promise<ApiLesson> => {
   return data;
 };
 
-// ─── Modules ──────────────────────────────────────────────────────────────────
+//  ─ Modules                                  
 export const getModulesApi = async (): Promise<ApiModule[]> => {
   const { data } = await apiClient.get<ApiModule[]>("/learn/modules/");
   return data;
@@ -169,7 +169,7 @@ export const completeLessonApi = async (
   });
 };
 
-// ─── Blogs ────────────────────────────────────────────────────────────────────
+//  ─ Blogs                                   
 export const getBlogsApi = async (): Promise<ApiBlog[]> => {
   const { data } = await apiClient.get<ApiBlog[]>("/blog/blog/");
   return data;
@@ -180,13 +180,13 @@ export const getBlogByIdApi = async (id: string): Promise<ApiBlog> => {
   return data;
 };
 
-// ─── Portfolio ────────────────────────────────────────────────────────────────
+//  ─ Portfolio                                 
 export const getPortfolioApi = async (userId: string | number): Promise<Portfolio> => {
   const { data } = await apiClient.get<Portfolio>(`/custom-user/get-investments/${userId}/`);
   return data;
 };
 
-// ─── Investment Assets ────────────────────────────────────────────────────────
+//  ─ Investment Assets                             
 export const getInvestmentAssetsApi = async (): Promise<ApiInvestmentAsset[]> => {
   const { data } = await apiClient.get<ApiInvestmentAsset[]>("/investment-asset/investment-asset/");
   return data;
@@ -208,7 +208,7 @@ export const updateInvestmentAssetApi = async (
   return data;
 };
 
-// ─── Seeds & Balances ─────────────────────────────────────────────────────────
+//  ─ Seeds & Balances                             ─
 
 /**
  * Buy seeds with real money.

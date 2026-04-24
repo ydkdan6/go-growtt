@@ -39,28 +39,28 @@ export default function ResetPassword() {
   const [passwordTouched, setPasswordTouched] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // ── Verified OTP stored for password step ─────────────────────────────────
+  //   Verified OTP stored for password step                 ─
   const verifiedOtp = useRef("");
 
-  // ── Focus first OTP input ─────────────────────────────────────────────────
+  //   Focus first OTP input                         ─
   useEffect(() => {
     if (step === "otp") inputRefs.current[0]?.focus();
   }, [step]);
 
-  // ── Countdown ─────────────────────────────────────────────────────────────
+  //   Countdown                               ─
   useEffect(() => {
     if (timeLeft <= 0) { setCanResend(true); return; }
     const t = setInterval(() => setTimeLeft((v) => v - 1), 1000);
     return () => clearInterval(t);
   }, [timeLeft]);
 
-  // ── Derived ───────────────────────────────────────────────────────────────
+  //   Derived                                ─
   const allRulesPassed  = PASSWORD_RULES.every((r) => r.test(password));
   const passwordsMatch  = password === confirm;
   const isCodeComplete  = code.every((d) => d !== "");
   const canSubmitPass   = allRulesPassed && passwordsMatch && !isPending;
 
-  // ── OTP input handlers ────────────────────────────────────────────────────
+  //   OTP input handlers                           
   const handleChange = useCallback((index: number, value: string) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
       setCode((prev) => {
@@ -78,7 +78,7 @@ export default function ResetPassword() {
     }
   }, [code]);
 
-  // ── Submit OTP step — just validate length, move to password step ─────────
+  //   Submit OTP step — just validate length, move to password step     ─
   const handleOtpSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     const otp = code.join("");
@@ -90,7 +90,7 @@ export default function ResetPassword() {
     setStep("password");
   }, [code, toast]);
 
-  // ── Submit new password ───────────────────────────────────────────────────
+  //   Submit new password                          ─
   const handlePasswordSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!allRulesPassed) {
@@ -131,7 +131,7 @@ export default function ResetPassword() {
     // TODO: call forgotPasswordApi(email) again when resend is needed
   }, [canResend, toast]);
 
-  // ── Success screen ─────────────────────────────────────────────────────────
+  //   Success screen                             ─
   if (step === "success") {
     return (
       <AuthLayout>
@@ -155,7 +155,7 @@ export default function ResetPassword() {
     );
   }
 
-  // ── Password step ──────────────────────────────────────────────────────────
+  //   Password step                              
   if (step === "password") {
     return (
       <AuthLayout>
@@ -239,7 +239,7 @@ export default function ResetPassword() {
     );
   }
 
-  // ── OTP step (default) ────────────────────────────────────────────────────
+  //   OTP step (default)                           
   return (
     <AuthLayout>
       <div className="h-full flex flex-col p-10 relative">

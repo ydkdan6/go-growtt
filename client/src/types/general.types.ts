@@ -95,7 +95,7 @@ export interface UserDetail {
   full_name: string | null;
   phone_number: string | null;
   address: string | null;
-  wallet_balance: string | null;
+  seed_balance: string | null;
   demo_balance: string | null;
   otp_code: string | null;
   account_type: string | null;
@@ -231,7 +231,7 @@ export const adaptLesson = (api: ApiLesson): Lesson => ({
 
 // Lesson Modules 
 
-// ─── API Response Shape — GET /learn/modules/ ─────────────────────────────────
+//  ─ API Response Shape — GET /learn/modules/                 ─
  
 export interface ApiModule {
   id: string;
@@ -246,7 +246,7 @@ export interface ApiModule {
   pub_date: string;
 }
  
-// ─── UI Shape ─────────────────────────────────────────────────────────────────
+//  ─ UI Shape                                 ─
  
 export interface Module {
   id: string;
@@ -261,7 +261,7 @@ export interface Module {
   pubDate: string;
 }
  
-// ─── Adapter ──────────────────────────────────────────────────────────────────
+//  ─ Adapter                                  
  
 export const adaptModule = (api: ApiModule): Module => ({
   id: api.id,
@@ -276,7 +276,7 @@ export const adaptModule = (api: ApiModule): Module => ({
   pubDate: api.pub_date,
 });
 
-// ─── API Response Shape — GET /blog/blog/ ─────────────────────────────────────
+//  ─ API Response Shape — GET /blog/blog/                   ─
 
 export interface ApiBlog {
   id: string;
@@ -291,7 +291,7 @@ export interface ApiBlog {
   pub_date: string;
 }
 
-// ─── UI Shape ─────────────────────────────────────────────────────────────────
+//  ─ UI Shape                                 ─
 
 export interface Blog {
   id: string;
@@ -306,7 +306,7 @@ export interface Blog {
   pubDate: string;
 }
 
-// ─── Adapter ──────────────────────────────────────────────────────────────────
+//  ─ Adapter                                  
 
 export const adaptBlog = (api: ApiBlog): Blog => ({
   id:           api.id,
@@ -321,10 +321,11 @@ export const adaptBlog = (api: ApiBlog): Blog => ({
   pubDate:      api.pub_date,
 });
 
-// ─── API Response Shape — GET /investment-asset/investment-asset/ ─────────────
+//  ─ API Response Shape — GET /investment-asset/investment-asset/       ─
 
 export interface ApiInvestmentAsset {
   id: string;
+  company: string | null;       
   category: string;
   investment_icon: string | null;
   investment_type: string | null;
@@ -334,7 +335,8 @@ export interface ApiInvestmentAsset {
   tenure: string | null;
   min_payment: string | null;
   interest: string | null;
-  asset_name: string | null;
+  rate: string | null;          
+  asset_name: string | null;     
   asset_name_code: string | null;
   tags: string | null;
   price_per_unit: string | null;
@@ -342,7 +344,6 @@ export interface ApiInvestmentAsset {
   percent_growth: string | null;
   market_cap: string | null;
   daily_volume: string | null;
-  // Stock parameters
   open_price:             string | null;
   high_price:             string | null;
   low_price:              string | null;
@@ -351,20 +352,16 @@ export interface ApiInvestmentAsset {
   change_percent:         string | null;
   num_trades:             string | null;
   market_capitalization:  string | null;
-  // Treasury Bills
   discount_rate:          string | null;
-  // Dollar Funds / Mutual Funds
   year_to_date:           string | null;
-  // Crypto
   price_change_in_naira:  string | null;
   status: boolean;
   pub_date: string;
 }
 
-// ─── UI Shape ─────────────────────────────────────────────────────────────────
-
 export interface InvestmentAsset {
   id: string;
+  company: string | null;        // ← was assetName
   category: string;
   investmentIcon: string | null;
   investmentType: string | null;
@@ -374,7 +371,8 @@ export interface InvestmentAsset {
   tenure: string | null;
   minPayment: number | null;
   interest: number | null;
-  assetName: string | null;
+  rate: number | null;           // ← new
+  assetName: string | null;      // keep for fallback
   assetNameCode: string | null;
   tags: string | null;
   pricePerUnit: number | null;
@@ -397,10 +395,11 @@ export interface InvestmentAsset {
   pubDate: string;
 }
 
-// ─── Adapter ──────────────────────────────────────────────────────────────────
+//  ─ Adapter                                  
 
 export const adaptInvestmentAsset = (api: ApiInvestmentAsset): InvestmentAsset => ({
   id:             api.id,
+  company:        api.company,                                                    // ← new
   category:       api.category,
   investmentIcon: api.investment_icon,
   investmentType: api.investment_type,
@@ -410,6 +409,7 @@ export const adaptInvestmentAsset = (api: ApiInvestmentAsset): InvestmentAsset =
   tenure:         api.tenure,
   minPayment:     api.min_payment    !== null ? Number(api.min_payment)    : null,
   interest:       api.interest       !== null ? Number(api.interest)       : null,
+  rate:           api.rate           !== null ? Number(api.rate)           : null, // ← new
   assetName:      api.asset_name,
   assetNameCode:  api.asset_name_code,
   tags:           api.tags,
@@ -433,7 +433,7 @@ export const adaptInvestmentAsset = (api: ApiInvestmentAsset): InvestmentAsset =
   pubDate:        api.pub_date,
 });
 
-// ─── Update Payload — PATCH /investment-asset/investment-asset/{id}/ ──────────
+//  ─ Update Payload — PATCH /investment-asset/investment-asset/{id}/      
 
 export interface UpdateInvestmentAssetPayload {
   category?:        string;
@@ -457,7 +457,7 @@ export interface UpdateInvestmentAssetPayload {
   pub_date?:        string;
 }
 
-// ─── Seed & Balance Payloads ──────────────────────────────────────────────────
+//  ─ Seed & Balance Payloads                          
 
 /** Shared payload shape used by buy-seed, convert-seed-fund,
  *  fund-demo-balance, and fund-seed-balance endpoints. */
@@ -465,24 +465,27 @@ export interface SeedBalancePayload {
   amount: string;
   custom_user_id: string;
 }
-
+ 
 // POST /custom-user/buy-seed/
+// Returns a Paystack checkout URL — redirect the user to payment_url
 export interface BuySeedResponse {
-  message: string;
+  payment_url: string; // Paystack checkout page URL
+  reference: string;         // unique payment reference — store before redirecting
+  access_code?: string;      // Paystack access code (optional, for inline popup)
+  message?: string;
   detail?: string;
-  seed_balance?: string;
   [key: string]: unknown;
 }
-
+ 
 // POST /custom-user/convert-seed-fund/
 export interface ConvertSeedFundResponse {
   message: string;
   detail?: string;
   seed_balance?: string;
-  wallet_balance?: string;
+  demo_balance?: string;
   [key: string]: unknown;
 }
-
+ 
 // POST /custom-user/fund-demo-balance/
 export interface FundDemoBalanceResponse {
   message: string;
@@ -490,7 +493,7 @@ export interface FundDemoBalanceResponse {
   demo_balance?: string;
   [key: string]: unknown;
 }
-
+ 
 // POST /custom-user/fund-seed-balance/
 export interface FundSeedBalanceResponse {
   message: string;
@@ -498,13 +501,13 @@ export interface FundSeedBalanceResponse {
   seed_balance?: string;
   [key: string]: unknown;
 }
-
+ 
 // GET /custom-user/verify-purchase/{reference}/
 export interface VerifyPurchaseResponse {
+  status: boolean;
   message: string;
-  detail?: string;
-  status?: string;       // e.g. "success" | "failed" | "pending"
-  seed_balance?: string; // updated balance after credit
-  reference?: string;
-  [key: string]: unknown;
+  reference: string;
+  amount: number;
+  email: string;
+  paid_at: string;
 }

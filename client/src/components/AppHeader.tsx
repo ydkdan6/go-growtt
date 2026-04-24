@@ -1,7 +1,7 @@
 import { Bell } from "lucide-react";
 import { useUserDetail } from "@/hooks/general/useUserDetails";
 
-// ─── Skeleton shimmer for loading state 
+//  ─ Skeleton shimmer for loading state 
 function Skeleton({ className }: { className?: string }) {
   return (
     <div
@@ -10,7 +10,7 @@ function Skeleton({ className }: { className?: string }) {
   );
 }
 
-// ─── User initials avatar fallback 
+//  ─ User initials avatar fallback 
 function InitialsAvatar({ name, email }: { name?: string | null; email?: string }) {
   const initials = name
     ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -41,7 +41,7 @@ export default function AppHeader() {
   return (
     <header className="w-full bg-gradient-to-r from-[#001A1A] via-[#008080] to-[#001A1A] px-4 md:px-12 py-3 flex items-center justify-between sticky top-0 z-40">
 
-      {/* ── Logo and Navigation ── */}
+      {/*   Logo and Navigation   */}
       <div className="flex items-center gap-8">
         {/* Logo */}
         <div className="flex items-center gap-3">
@@ -72,10 +72,10 @@ export default function AppHeader() {
         </nav>
       </div>
 
-      {/* ── Right side ── */}
+      {/*   Right side   */}
       <div className="flex items-center gap-4">
 
-        {/* ── User info — name + email ── */}
+        {/*   User info — name + email   */}
         <div className="hidden md:flex flex-col items-end justify-center">
           {isLoading ? (
             // Skeleton shimmer while fetching

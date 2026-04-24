@@ -13,7 +13,7 @@ import {
 import { useBlogs } from "@/hooks/general/useBlogs";
 import type { Blog } from "@/types/general.types";
 
-// ─── Helpers 
+//  ─ Helpers 
 
 const getCategoryColor = (tag: string) => {
   switch (tag.toLowerCase()) {
@@ -48,7 +48,7 @@ const formatDate = (iso: string) => {
   return new Date(iso).toLocaleDateString("en-NG", { day: "numeric", month: "short" });
 };
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+//  ─ Skeleton                                 ─
 
 function ArticleSkeleton() {
   return (
@@ -66,17 +66,17 @@ function ArticleSkeleton() {
   );
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+//  ─ Component                                 
 
 export default function News() {
   const [, setLocation] = useLocation();
   const [activeCategory, setActiveCategory] = useState("all");
   const [savedArticles, setSavedArticles]   = useState<string[]>([]);
 
-  // ── API ───────────────────────────────────────────────────────────────────
+  //   API                                  ─
   const { data: blogs = [], isLoading, isError, refetch } = useBlogs();
 
-  // ── Derived ───────────────────────────────────────────────────────────────
+  //   Derived                                ─
   // Build category tabs dynamically from API tags
   const uniqueTags = [...new Set(blogs.map((b) => b.tag).filter(Boolean))];
 
@@ -129,7 +129,7 @@ export default function News() {
 
       <main className="max-w-lg lg:max-w-4xl xl:max-w-6xl mx-auto px-4 lg:px-6 pt-4 lg:pt-6 space-y-5 lg:space-y-6">
 
-        {/* ── Category Filter — dynamic from API tags ── */}
+        {/*   Category Filter — dynamic from API tags   */}
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
           {isLoading
             ? Array.from({ length: 4 }).map((_, i) => (
@@ -151,7 +151,7 @@ export default function News() {
           }
         </div>
 
-        {/* ── Error state ── */}
+        {/*   Error state   */}
         {isError && (
           <div className="flex flex-col items-center gap-3 py-12 text-center">
             <AlertCircle className="w-10 h-10 text-destructive" />
@@ -160,12 +160,12 @@ export default function News() {
           </div>
         )}
 
-        {/* ── Loading: featured skeleton ── */}
+        {/*   Loading: featured skeleton   */}
         {isLoading && (
           <div className="rounded-2xl bg-muted animate-pulse h-44 w-full" />
         )}
 
-        {/* ── Featured article — first blog from API ── */}
+        {/*   Featured article — first blog from API   */}
         {!isLoading && !isError && featuredBlog && (
           <Card
             className="border-0 bg-gradient-to-br from-primary via-primary/90 to-primary/70 overflow-hidden cursor-pointer hover-elevate"
@@ -248,7 +248,7 @@ export default function News() {
           </Card>
         )}
 
-        {/* ── Article list ── */}
+        {/*   Article list   */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold">Latest News</h3>
@@ -356,7 +356,7 @@ export default function News() {
           )}
         </section>
 
-        {/* ── Market Pulse — static (no market data endpoint yet) ── */}
+        {/*   Market Pulse — static (no market data endpoint yet)   */}
         <section>
           <h3 className="font-semibold mb-3">Market Pulse</h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
