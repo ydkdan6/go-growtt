@@ -502,6 +502,25 @@ export interface FundSeedBalanceResponse {
   [key: string]: unknown;
 }
  
+// GET /custom-user/get-investments/{user_id}/
+export interface PortfolioInvestment {
+  id: string;
+  amount: string | null;
+  status: boolean;
+  pub_date: string;
+  investment_icon: string | null;
+  investment_type: string | null;
+  category: string | null;
+  company: string | null;
+  price_per_unit: string | null;
+  per_unit_name: string | null;
+}
+
+export interface Portfolio {
+  portfolio_value: number;
+  investments: PortfolioInvestment[];
+}
+
 // GET /custom-user/verify-purchase/{reference}/
 export interface VerifyPurchaseResponse {
   status: boolean;

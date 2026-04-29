@@ -17,6 +17,8 @@ import {
 import { useInvestmentAssetsByCategory, useInvestmentAssets } from "@/hooks/general/useInvestmentsassets";
 import { useInvestmentPurchase } from "@/hooks/general/useInvestmentPurchase";
 import type { InvestmentAsset } from "@/types/general.types";
+import { useTheme } from "@/components/theme-provider";
+import TradingViewWidget from "@/components/TradingViewWidget";
 
 // ─── Category style mapping ───────────────────────────────────────────────────
 const getCategoryStyle = (category: string): {
@@ -42,12 +44,26 @@ const getCategoryStyle = (category: string): {
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const fmt = (val: number | null, prefix = "₦") =>
-  val !== null ? `${prefix}${val.toLocaleString()}` : null;
+const isValidNum = (v: number | null | undefined): v is number =>
+  v !== null && v !== undefined && !Number.isNaN(v);
 
-const formatGrowth = (val: number | null) => {
-  if (val === null) return null;
+const fmt = (val: number | null | undefined, prefix = "₦") =>
+  isValidNum(val) ? `${prefix}${val.toLocaleString()}` : null;
+
+const formatGrowth = (val: number | null | undefined) => {
+  if (!isValidNum(val)) return null;
   return { text: `${val >= 0 ? "+" : ""}${val.toFixed(2)}%`, positive: val >= 0 };
+};
+
+// Derive a TradingView NSE symbol from assetNameCode (e.g. "NSE-DANGCEM" → "NSENG:DANGCEM")
+const getNseSymbol = (code: string | null): string | null => {
+  if (!code) return null;
+  const clean = code.trim();
+  if (/^NSE[-:]/i.test(clean)) {
+    const ticker = clean.replace(/^NSE[-:]/i, "").trim().toUpperCase();
+    return ticker ? `NSENG:${ticker}` : null;
+  }
+  return clean ? `NSENG:${clean.toUpperCase()}` : null;
 };
 
 // ─── Category params ──────────────────────────────────────────────────────────
@@ -58,54 +74,52 @@ const getCategoryParams = (asset: InvestmentAsset): ParamRow[] => {
   const rows: ParamRow[] = [];
 
   if (c.includes("stock")) {
-    if (asset.openPrice  !== null) rows.push({ label: "Open",    value: fmt(asset.openPrice)  ?? "—" });
-    if (asset.highPrice  !== null) rows.push({ label: "High",    value: fmt(asset.highPrice)  ?? "—" });
-    if (asset.lowPrice   !== null) rows.push({ label: "Low",     value: fmt(asset.lowPrice)   ?? "—" });
-    if (asset.closePrice !== null) rows.push({ label: "Close",   value: fmt(asset.closePrice) ?? "—" });
-    if (asset.changeNaira !== null)
+    if (isValidNum(asset.openPrice))  rows.push({ label: "Open",  value: fmt(asset.openPrice)  ?? "—" });
+    if (isValidNum(asset.highPrice))  rows.push({ label: "High",  value: fmt(asset.highPrice)  ?? "—" });
+    if (isValidNum(asset.lowPrice))   rows.push({ label: "Low",   value: fmt(asset.lowPrice)   ?? "—" });
+    if (isValidNum(asset.closePrice)) rows.push({ label: "Close", value: fmt(asset.closePrice) ?? "—" });
+    if (isValidNum(asset.changeNaira))
       rows.push({ label: "Chg ₦", value: fmt(asset.changeNaira) ?? "—",
-        highlight: (asset.changeNaira ?? 0) >= 0 ? "up" : "down" });
-    if (asset.changePercent !== null)
+        highlight: asset.changeNaira! >= 0 ? "up" : "down" });
+    if (isValidNum(asset.changePercent))
       rows.push({ label: "Chg %",
-        value: `${(asset.changePercent ?? 0) >= 0 ? "+" : ""}${asset.changePercent?.toFixed(2)}%`,
-        highlight: (asset.changePercent ?? 0) >= 0 ? "up" : "down" });
-    if (asset.numTrades !== null)
-      rows.push({ label: "Trades", value: Number(asset.numTrades).toLocaleString() });
-    if (asset.marketCapitalization !== null)
+        value: `${asset.changePercent! >= 0 ? "+" : ""}${asset.changePercent!.toFixed(2)}%`,
+        highlight: asset.changePercent! >= 0 ? "up" : "down" });
+    if (isValidNum(asset.numTrades))
+      rows.push({ label: "Trades", value: asset.numTrades!.toLocaleString() });
+    if (isValidNum(asset.marketCapitalization))
       rows.push({ label: "Mkt Cap", value: fmt(asset.marketCapitalization) ?? "—" });
   }
   if (c.includes("treasury")) {
-    if (asset.discountRate !== null)
+    if (isValidNum(asset.discountRate))
       rows.push({ label: "Discount Rate", value: `${asset.discountRate}%` });
   }
   if (c.includes("gold")) {
-    if (asset.openPrice  !== null) rows.push({ label: "Open",  value: fmt(asset.openPrice)  ?? "—" });
-    if (asset.highPrice  !== null) rows.push({ label: "High",  value: fmt(asset.highPrice)  ?? "—" });
-    if (asset.lowPrice   !== null) rows.push({ label: "Low",   value: fmt(asset.lowPrice)   ?? "—" });
-    if (asset.closePrice !== null) rows.push({ label: "Close", value: fmt(asset.closePrice) ?? "—" });
-    if (asset.changePercent !== null)
+    if (isValidNum(asset.openPrice))  rows.push({ label: "Open",  value: fmt(asset.openPrice)  ?? "—" });
+    if (isValidNum(asset.highPrice))  rows.push({ label: "High",  value: fmt(asset.highPrice)  ?? "—" });
+    if (isValidNum(asset.lowPrice))   rows.push({ label: "Low",   value: fmt(asset.lowPrice)   ?? "—" });
+    if (isValidNum(asset.closePrice)) rows.push({ label: "Close", value: fmt(asset.closePrice) ?? "—" });
+    if (isValidNum(asset.changePercent))
       rows.push({ label: "Chg %",
-        value: `${(asset.changePercent ?? 0) >= 0 ? "+" : ""}${asset.changePercent?.toFixed(2)}%`,
-        highlight: (asset.changePercent ?? 0) >= 0 ? "up" : "down" });
+        value: `${asset.changePercent! >= 0 ? "+" : ""}${asset.changePercent!.toFixed(2)}%`,
+        highlight: asset.changePercent! >= 0 ? "up" : "down" });
   }
   if (c.includes("dollar") || c.includes("mutual")) {
-    if (asset.yearToDate !== null)
+    if (isValidNum(asset.yearToDate))
       rows.push({ label: "YTD",
-        value: `${(asset.yearToDate ?? 0) >= 0 ? "+" : ""}${asset.yearToDate?.toFixed(2)}%`,
-        highlight: (asset.yearToDate ?? 0) >= 0 ? "up" : "down" });
-    if (asset.rate !== null)
-      rows.push({ label: "Rate",
-        value: `${asset.rate}% p.a.`,
-        highlight: "up" });
+        value: `${asset.yearToDate! >= 0 ? "+" : ""}${asset.yearToDate!.toFixed(2)}%`,
+        highlight: asset.yearToDate! >= 0 ? "up" : "down" });
+    if (isValidNum(asset.rate))
+      rows.push({ label: "Rate", value: `${asset.rate}% p.a.`, highlight: "up" });
   }
   if (c.includes("crypto")) {
-    if (asset.changePercent !== null)
+    if (isValidNum(asset.changePercent))
       rows.push({ label: "24h %",
-        value: `${(asset.changePercent ?? 0) >= 0 ? "+" : ""}${asset.changePercent?.toFixed(2)}%`,
-        highlight: (asset.changePercent ?? 0) >= 0 ? "up" : "down" });
-    if (asset.priceChangeInNaira !== null)
+        value: `${asset.changePercent! >= 0 ? "+" : ""}${asset.changePercent!.toFixed(2)}%`,
+        highlight: asset.changePercent! >= 0 ? "up" : "down" });
+    if (isValidNum(asset.priceChangeInNaira))
       rows.push({ label: "24h ₦", value: fmt(asset.priceChangeInNaira) ?? "—",
-        highlight: (asset.priceChangeInNaira ?? 0) >= 0 ? "up" : "down" });
+        highlight: asset.priceChangeInNaira! >= 0 ? "up" : "down" });
   }
   return rows;
 };
@@ -116,11 +130,13 @@ type SheetStep = "detail" | "invest" | "confirm" | "success" | "error";
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function AssetListing({ params }: { params?: { category?: string } }) {
   const [, setLocation] = useLocation();
+  const { theme } = useTheme();
   const [selectedAsset, setSelectedAsset] = useState<InvestmentAsset | null>(null);
   const [sheetOpen, setSheetOpen]         = useState(false);
   const [step, setStep]                   = useState<SheetStep>("detail");
   const [rawAmount, setRawAmount]         = useState("");
   const [amountError, setAmountError]     = useState("");
+  const [search, setSearch]               = useState("");
 
   const categoryParam = params?.category ?? "";
 
@@ -184,6 +200,19 @@ export default function AssetListing({ params }: { params?: { category?: string 
   };
 
   const pageTitle = categoryName || categoryParam || "Assets";
+
+  const filteredAssets = search.trim()
+    ? assets.filter((a) => {
+        const q = search.toLowerCase();
+        return (
+          (a.company ?? "").toLowerCase().includes(q) ||
+          (a.assetName ?? "").toLowerCase().includes(q) ||
+          (a.assetNameCode ?? "").toLowerCase().includes(q) ||
+          (a.description ?? "").toLowerCase().includes(q) ||
+          (a.about ?? "").toLowerCase().includes(q)
+        );
+      })
+    : assets;
 
   // ── Loading ────────────────────────────────────────────────────────────
   if (isLoading || allLoading) {
@@ -259,42 +288,66 @@ export default function AssetListing({ params }: { params?: { category?: string 
         <div>
           <h1 className="text-2xl font-bold mb-0.5">{pageTitle}</h1>
           <p className="text-sm text-muted-foreground">
-            {assets.length} asset{assets.length !== 1 ? "s" : ""} available
+            {filteredAssets.length} asset{filteredAssets.length !== 1 ? "s" : ""} available
           </p>
         </div>
 
+        {/* Search */}
+        {assets.length > 0 && (
+          <div className="relative">
+            <Input
+              placeholder={`Search ${pageTitle}…`}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-4 h-10"
+            />
+            {search && (
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors text-xs"
+                onClick={() => setSearch("")}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Empty state */}
-        {assets.length === 0 ? (
+        {filteredAssets.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-16 text-center">
             <BarChart3 className="w-10 h-10 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">No assets available in this category yet.</p>
-            <Button variant="outline" size="sm" onClick={() => setLocation("/invest")}>
-              Back to Invest
-            </Button>
+            <p className="text-sm text-muted-foreground">
+              {search ? `No assets match "${search}"` : "No assets available in this category yet."}
+            </p>
+            {search ? (
+              <Button variant="outline" size="sm" onClick={() => setSearch("")}>Clear Search</Button>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => setLocation("/invest")}>Back to Invest</Button>
+            )}
           </div>
         ) : (
           <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-            {assets.map((asset) => {
+            {filteredAssets.map((asset) => {
               // Primary display name
               const name = asset.company ?? asset.assetName ?? asset.assetNameCode ?? asset.category;
               const code = asset.assetNameCode;
               const subtitle = asset.description ?? asset.about ?? null;
 
               // Returns — rate → interest → yearToDate → percentGrowth
-              const returns = asset.rate
+              const returns = isValidNum(asset.rate)
                 ? `${asset.rate}% p.a.`
-                : asset.interest
+                : isValidNum(asset.interest)
                 ? `${asset.interest}% p.a.`
-                : asset.yearToDate !== null
-                ? `${(asset.yearToDate ?? 0) >= 0 ? "+" : ""}${asset.yearToDate}% YTD`
-                : asset.percentGrowth !== null
-                ? `${(asset.percentGrowth ?? 0) > 0 ? "+" : ""}${asset.percentGrowth}%`
+                : isValidNum(asset.yearToDate)
+                ? `${asset.yearToDate! >= 0 ? "+" : ""}${asset.yearToDate}% YTD`
+                : isValidNum(asset.percentGrowth)
+                ? `${asset.percentGrowth! >= 0 ? "+" : ""}${asset.percentGrowth}%`
                 : null;
 
               const growth    = formatGrowth(asset.changePercent ?? asset.percentGrowth);
               const catParams = getCategoryParams(asset);
-              const price     = asset.pricePerUnit
-                ? `₦${Number(asset.pricePerUnit).toLocaleString()}`
+              const price     = isValidNum(asset.pricePerUnit)
+                ? `₦${asset.pricePerUnit!.toLocaleString()}`
                 : null;
 
               return (
@@ -367,9 +420,9 @@ export default function AssetListing({ params }: { params?: { category?: string 
                               {asset.tenure}
                             </Badge>
                           )}
-                          {asset.minPayment && (
+                          {isValidNum(asset.minPayment) && (
                             <span className="text-[10px] text-muted-foreground">
-                              Min ₦{Number(asset.minPayment).toLocaleString()}
+                              Min ₦{asset.minPayment!.toLocaleString()}
                             </span>
                           )}
                         </div>
@@ -412,14 +465,14 @@ export default function AssetListing({ params }: { params?: { category?: string 
             const catParams = getCategoryParams(selectedAsset);
             const growth    = formatGrowth(selectedAsset.changePercent ?? selectedAsset.percentGrowth);
 
-            const returns = selectedAsset.rate
+            const returns = isValidNum(selectedAsset.rate)
               ? `${selectedAsset.rate}% p.a.`
-              : selectedAsset.interest
+              : isValidNum(selectedAsset.interest)
               ? `${selectedAsset.interest}% p.a.`
-              : selectedAsset.yearToDate !== null
-              ? `${(selectedAsset.yearToDate ?? 0) >= 0 ? "+" : ""}${selectedAsset.yearToDate}% YTD`
-              : selectedAsset.percentGrowth !== null
-              ? `${(selectedAsset.percentGrowth ?? 0) >= 0 ? "+" : ""}${selectedAsset.percentGrowth}%`
+              : isValidNum(selectedAsset.yearToDate)
+              ? `${selectedAsset.yearToDate! >= 0 ? "+" : ""}${selectedAsset.yearToDate}% YTD`
+              : isValidNum(selectedAsset.percentGrowth)
+              ? `${selectedAsset.percentGrowth! >= 0 ? "+" : ""}${selectedAsset.percentGrowth}%`
               : null;
 
             // ── Detail ─────────────────────────────────────────────────────
@@ -434,10 +487,10 @@ export default function AssetListing({ params }: { params?: { category?: string 
                       <SheetTitle className="text-left text-lg leading-tight truncate">{name}</SheetTitle>
                       {code && <p className="text-xs text-muted-foreground font-mono mt-0.5">{code}</p>}
                       {/* Price inline in header */}
-                      {selectedAsset.pricePerUnit && (
+                      {isValidNum(selectedAsset.pricePerUnit) && (
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-base font-bold">
-                            ₦{Number(selectedAsset.pricePerUnit).toLocaleString()}
+                            ₦{selectedAsset.pricePerUnit!.toLocaleString()}
                           </span>
                           {selectedAsset.perUnitName && (
                             <span className="text-xs text-muted-foreground">/ {selectedAsset.perUnitName}</span>
@@ -454,6 +507,21 @@ export default function AssetListing({ params }: { params?: { category?: string 
                 </SheetHeader>
 
                 <div className="flex-1 overflow-y-auto p-5 space-y-4 pb-4">
+                  {/* TradingView chart — stocks only, only when symbol is resolvable */}
+                  {(() => {
+                    const isStock = selectedAsset.category?.toLowerCase().includes("stock");
+                    const nseSymbol = isStock ? getNseSymbol(selectedAsset.assetNameCode) : null;
+                    if (!nseSymbol) return null;
+                    return (
+                      <div className="h-72 w-full rounded-xl overflow-hidden border">
+                        <TradingViewWidget
+                          symbol={nseSymbol}
+                          theme={theme === "dark" ? "dark" : "light"}
+                        />
+                      </div>
+                    );
+                  })()}
+
                   {/* About */}
                   {subtitle && subtitle !== "Asset description not available" && (
                     <Card className="border">
@@ -472,10 +540,10 @@ export default function AssetListing({ params }: { params?: { category?: string 
                         <p className="font-semibold text-sm text-green-600 dark:text-green-400">{returns}</p>
                       </CardContent></Card>
                     )}
-                    {selectedAsset.minPayment && (
+                    {isValidNum(selectedAsset.minPayment) && (
                       <Card className="border"><CardContent className="p-3 text-center">
                         <p className="text-xs text-muted-foreground mb-0.5">Min. Amount</p>
-                        <p className="font-semibold text-sm">₦{Number(selectedAsset.minPayment).toLocaleString()}</p>
+                        <p className="font-semibold text-sm">₦{selectedAsset.minPayment!.toLocaleString()}</p>
                       </CardContent></Card>
                     )}
                     {selectedAsset.riskLevel && (
@@ -490,24 +558,24 @@ export default function AssetListing({ params }: { params?: { category?: string 
                         <p className="font-semibold text-sm">{selectedAsset.tenure}</p>
                       </CardContent></Card>
                     )}
-                    {selectedAsset.yearToDate !== null && selectedAsset.yearToDate !== undefined && (
+                    {isValidNum(selectedAsset.yearToDate) && (
                       <Card className="border"><CardContent className="p-3 text-center">
                         <p className="text-xs text-muted-foreground mb-0.5">YTD Return</p>
-                        <p className={`font-semibold text-sm ${(selectedAsset.yearToDate ?? 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}>
-                          {(selectedAsset.yearToDate ?? 0) >= 0 ? "+" : ""}{selectedAsset.yearToDate}%
+                        <p className={`font-semibold text-sm ${selectedAsset.yearToDate! >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}>
+                          {selectedAsset.yearToDate! >= 0 ? "+" : ""}{selectedAsset.yearToDate}%
                         </p>
                       </CardContent></Card>
                     )}
-                    {selectedAsset.marketCap && (
+                    {isValidNum(selectedAsset.marketCap) && (
                       <Card className="border"><CardContent className="p-3 text-center">
                         <p className="text-xs text-muted-foreground mb-0.5">Market Cap</p>
-                        <p className="font-semibold text-sm">₦{Number(selectedAsset.marketCap).toLocaleString()}</p>
+                        <p className="font-semibold text-sm">₦{selectedAsset.marketCap!.toLocaleString()}</p>
                       </CardContent></Card>
                     )}
-                    {selectedAsset.dailyVolume && (
+                    {isValidNum(selectedAsset.dailyVolume) && (
                       <Card className="border"><CardContent className="p-3 text-center">
                         <p className="text-xs text-muted-foreground mb-0.5">Daily Volume</p>
-                        <p className="font-semibold text-sm">₦{Number(selectedAsset.dailyVolume).toLocaleString()}</p>
+                        <p className="font-semibold text-sm">₦{selectedAsset.dailyVolume!.toLocaleString()}</p>
                       </CardContent></Card>
                     )}
                   </div>

@@ -4,11 +4,11 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { ThemeToggle } from "../components/theme-toggle";
 import {
-  ArrowLeft, Clock, BookOpen, Sprout, AlertCircle, Calendar, CheckCircle2,
+  ArrowLeft, ArrowRight, Clock, BookOpen, Sprout, AlertCircle, Calendar, CheckCircle2,
 } from "lucide-react";
-import { useLessonById, useLessonTrack, lessonKeys } from "@/hooks/general/useLessons";
+import { useLessonById, useLessonTrack, useLessons, lessonKeys } from "@/hooks/general/useLessons";
 import { useUserDetail } from "@/hooks/general/useUserDetails";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { userKeys } from "@/config/queryKeys";
 import { moduleKeys } from "@/hooks/general/useLessonModules";
@@ -25,8 +25,17 @@ export default function LessonDetail() {
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
 
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { data: user } = useUserDetail();
+
+  // All lessons for prev/next navigation
+  const { data: allLessons = [] } = useLessons();
+  const currentIndex = allLessons.findIndex((l) => l.id === id);
+  const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
+  const nextLesson = currentIndex !== -1 && currentIndex < allLessons.length - 1
+    ? allLessons[currentIndex + 1]
+    : null;
   const userId = user?.id;
 
   //   Two fetches: base lesson data + tracked status             
@@ -292,24 +301,38 @@ export default function LessonDetail() {
           </CardContent>
         </Card>
 
-        {/*   Back button   */}
-        <Button
-          variant={isCompleted ? "default" : "outline"}
-          className="w-full"
-          onClick={handleBack}
-        >
-          {isCompleted ? (
-            <>
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Back to Module
-            </>
-          ) : (
-            <>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Module
-            </>
-          )}
-        </Button>
+        {/*   Lesson navigation   */}
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            className="flex-1"
+            disabled={!prevLesson}
+            onClick={() => prevLesson && setLocation(`/lesson/${prevLesson.id}`)}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Previous
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="flex-shrink-0"
+            onClick={handleBack}
+            title="Back to module"
+          >
+            <BookOpen className="w-4 h-4" />
+          </Button>
+
+          <Button
+            variant={nextLesson ? (isCompleted ? "default" : "outline") : "outline"}
+            className="flex-1"
+            disabled={!nextLesson}
+            onClick={() => nextLesson && setLocation(`/lesson/${nextLesson.id}`)}
+          >
+            Next
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
       </main>
     </div>
   );

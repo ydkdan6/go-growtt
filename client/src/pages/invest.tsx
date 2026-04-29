@@ -40,12 +40,16 @@ import {
   CheckCircle2,
   PartyPopper,
   RefreshCw,
+  Search,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useInvestmentAssets } from "@/hooks/general/useInvestmentsassets";
 import { usePortfolio } from "@/hooks/general/usePortfolio";
 import { useInvestmentPurchase } from "@/hooks/general/useInvestmentPurchase";
 import type { InvestmentAsset } from "@/types/general.types";
+import { useTheme } from "@/components/theme-provider";
+import TradingViewWidget from "@/components/TradingViewWidget";
 
 // ─── CoinGecko ────────────────────────────────────────────────────────────────
 const COINGECKO_URL =
@@ -125,8 +129,34 @@ const getCategoryStyle = (
 };
 
 // ─── Category-specific param rows ────────────────────────────────────────────
-const fmt = (val: number | null, prefix = "₦") =>
-  val !== null ? `${prefix}${val.toLocaleString()}` : null;
+const isValidNum = (v: number | null | undefined): v is number =>
+  v !== null && v !== undefined && !Number.isNaN(v);
+
+const fmt = (val: number | null | undefined, prefix = "₦") =>
+  isValidNum(val) ? `${prefix}${val.toLocaleString()}` : null;
+
+// Strips NSE prefix and returns a TradingView-compatible symbol, or null if invalid.
+// Silently rejects blank strings and the literal text "NaN" the API sometimes returns.
+const getNseSymbol = (code: string | null | undefined): string | null => {
+  if (!code) return null;
+  const clean = code.trim();
+  if (!clean || /^nan$/i.test(clean)) return null;
+  if (/^NSE[-:]/i.test(clean)) {
+    const ticker = clean.replace(/^NSE[-:]/i, "").trim().toUpperCase();
+    return ticker && !/^nan$/i.test(ticker) ? `NSENG:${ticker}` : null;
+  }
+  return `NSENG:${clean.toUpperCase()}`;
+};
+
+// Uses company (ticker), then assetNameCode, then assetName to find a usable NSE symbol.
+const resolveStockSymbol = (asset: InvestmentAsset): string | null =>
+  getNseSymbol(asset.company) ?? getNseSymbol(asset.assetNameCode) ?? getNseSymbol(asset.assetName) ?? null;
+
+// Filters out "NaN" strings the API occasionally returns for string fields.
+const safeStr = (s: string | null | undefined): string | null => {
+  if (!s) return null;
+  return /^nan$/i.test(s.trim()) ? null : s;
+};
 
 interface ParamRow {
   label: string;
@@ -139,87 +169,59 @@ const getCategoryParams = (asset: InvestmentAsset): ParamRow[] => {
   const rows: ParamRow[] = [];
 
   if (c.includes("stock")) {
-    if (asset.openPrice !== null)
-      rows.push({ label: "Open", value: fmt(asset.openPrice) ?? "—" });
-    if (asset.highPrice !== null)
-      rows.push({ label: "High", value: fmt(asset.highPrice) ?? "—" });
-    if (asset.lowPrice !== null)
-      rows.push({ label: "Low", value: fmt(asset.lowPrice) ?? "—" });
-    if (asset.closePrice !== null)
-      rows.push({ label: "Close", value: fmt(asset.closePrice) ?? "—" });
-    if (asset.changeNaira !== null)
-      rows.push({
-        label: "Chg ₦",
-        value: fmt(asset.changeNaira) ?? "—",
-        highlight: (asset.changeNaira ?? 0) >= 0 ? "up" : "down",
-      });
-    if (asset.changePercent !== null)
-      rows.push({
-        label: "Chg %",
-        value: `${(asset.changePercent ?? 0) >= 0 ? "+" : ""}${asset.changePercent?.toFixed(2)}%`,
-        highlight: (asset.changePercent ?? 0) >= 0 ? "up" : "down",
-      });
-    if (asset.numTrades !== null)
-      rows.push({
-        label: "Trades",
-        value: Number(asset.numTrades).toLocaleString(),
-      });
-    if (asset.dailyVolume !== null)
+    if (isValidNum(asset.openPrice))  rows.push({ label: "Open",  value: fmt(asset.openPrice)  ?? "—" });
+    if (isValidNum(asset.highPrice))  rows.push({ label: "High",  value: fmt(asset.highPrice)  ?? "—" });
+    if (isValidNum(asset.lowPrice))   rows.push({ label: "Low",   value: fmt(asset.lowPrice)   ?? "—" });
+    if (isValidNum(asset.closePrice)) rows.push({ label: "Close", value: fmt(asset.closePrice) ?? "—" });
+    if (isValidNum(asset.changeNaira))
+      rows.push({ label: "Chg ₦", value: fmt(asset.changeNaira) ?? "—",
+        highlight: asset.changeNaira! >= 0 ? "up" : "down" });
+    if (isValidNum(asset.changePercent))
+      rows.push({ label: "Chg %",
+        value: `${asset.changePercent! >= 0 ? "+" : ""}${asset.changePercent!.toFixed(2)}%`,
+        highlight: asset.changePercent! >= 0 ? "up" : "down" });
+    if (isValidNum(asset.numTrades))
+      rows.push({ label: "Trades", value: asset.numTrades!.toLocaleString() });
+    if (isValidNum(asset.dailyVolume))
       rows.push({ label: "Volume", value: fmt(asset.dailyVolume) ?? "—" });
-    if (asset.marketCapitalization !== null)
-      rows.push({
-        label: "Mkt Cap",
-        value: fmt(asset.marketCapitalization) ?? "—",
-      });
+    if (isValidNum(asset.marketCapitalization))
+      rows.push({ label: "Mkt Cap", value: fmt(asset.marketCapitalization) ?? "—" });
   }
   if (c.includes("treasury")) {
-    if (asset.discountRate !== null)
+    if (isValidNum(asset.discountRate))
       rows.push({ label: "Discount Rate", value: `${asset.discountRate}%` });
   }
   if (c.includes("gold")) {
-    if (asset.openPrice !== null)
-      rows.push({ label: "Open", value: fmt(asset.openPrice) ?? "—" });
-    if (asset.highPrice !== null)
-      rows.push({ label: "High", value: fmt(asset.highPrice) ?? "—" });
-    if (asset.lowPrice !== null)
-      rows.push({ label: "Low", value: fmt(asset.lowPrice) ?? "—" });
-    if (asset.closePrice !== null)
-      rows.push({ label: "Close", value: fmt(asset.closePrice) ?? "—" });
-    if (asset.changePercent !== null)
-      rows.push({
-        label: "Chg %",
-        value: `${(asset.changePercent ?? 0) >= 0 ? "+" : ""}${asset.changePercent?.toFixed(2)}%`,
-        highlight: (asset.changePercent ?? 0) >= 0 ? "up" : "down",
-      });
+    if (isValidNum(asset.openPrice))  rows.push({ label: "Open",  value: fmt(asset.openPrice)  ?? "—" });
+    if (isValidNum(asset.highPrice))  rows.push({ label: "High",  value: fmt(asset.highPrice)  ?? "—" });
+    if (isValidNum(asset.lowPrice))   rows.push({ label: "Low",   value: fmt(asset.lowPrice)   ?? "—" });
+    if (isValidNum(asset.closePrice)) rows.push({ label: "Close", value: fmt(asset.closePrice) ?? "—" });
+    if (isValidNum(asset.changePercent))
+      rows.push({ label: "Chg %",
+        value: `${asset.changePercent! >= 0 ? "+" : ""}${asset.changePercent!.toFixed(2)}%`,
+        highlight: asset.changePercent! >= 0 ? "up" : "down" });
   }
   if (c.includes("dollar") || c.includes("mutual")) {
-    if (asset.yearToDate !== null)
-      rows.push({
-        label: "YTD",
-        value: `${(asset.yearToDate ?? 0) >= 0 ? "+" : ""}${asset.yearToDate?.toFixed(2)}%`,
-        highlight: (asset.yearToDate ?? 0) >= 0 ? "up" : "down",
-      });
+    if (isValidNum(asset.yearToDate))
+      rows.push({ label: "YTD",
+        value: `${asset.yearToDate! >= 0 ? "+" : ""}${asset.yearToDate!.toFixed(2)}%`,
+        highlight: asset.yearToDate! >= 0 ? "up" : "down" });
   }
   if (c.includes("crypto")) {
-    if (asset.changePercent !== null)
-      rows.push({
-        label: "24h %",
-        value: `${(asset.changePercent ?? 0) >= 0 ? "+" : ""}${asset.changePercent?.toFixed(2)}%`,
-        highlight: (asset.changePercent ?? 0) >= 0 ? "up" : "down",
-      });
-    if (asset.priceChangeInNaira !== null)
-      rows.push({
-        label: "24h ₦",
-        value: fmt(asset.priceChangeInNaira) ?? "—",
-        highlight: (asset.priceChangeInNaira ?? 0) >= 0 ? "up" : "down",
-      });
+    if (isValidNum(asset.changePercent))
+      rows.push({ label: "24h %",
+        value: `${asset.changePercent! >= 0 ? "+" : ""}${asset.changePercent!.toFixed(2)}%`,
+        highlight: asset.changePercent! >= 0 ? "up" : "down" });
+    if (isValidNum(asset.priceChangeInNaira))
+      rows.push({ label: "24h ₦", value: fmt(asset.priceChangeInNaira) ?? "—",
+        highlight: asset.priceChangeInNaira! >= 0 ? "up" : "down" });
   }
   return rows;
 };
 
 // ─── Build tabs WITHOUT "All" ─────────────────────────────────────────────────
 const buildTabs = (assets: InvestmentAsset[]) => {
-  const cats = [...new Set(assets.map((a) => a.category).filter(Boolean))];
+  const cats = Array.from(new Set(assets.map((a) => a.category).filter(Boolean)));
   return cats.map((c) => ({ id: c, label: c })); // ← no "All" entry
 };
 
@@ -228,7 +230,11 @@ type SheetStep = "detail" | "invest" | "confirm" | "success" | "error";
 
 export default function Invest() {
   const [, setLocation] = useLocation();
+  const { theme } = useTheme();
   const [activeCategory, setActiveCategory] = useState<string>("");
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const ITEMS_PER_PAGE = 10;
   const [selectedAsset, setSelectedAsset] = useState<InvestmentAsset | null>(
     null,
   );
@@ -236,6 +242,7 @@ export default function Invest() {
   const [step, setStep] = useState<SheetStep>("detail");
   const [rawAmount, setRawAmount] = useState("");
   const [amountError, setAmountError] = useState("");
+  const [purchaseError, setPurchaseError] = useState("");
 
   const {
     data: assets = [],
@@ -263,7 +270,33 @@ export default function Invest() {
     }
   }, [assets, activeCategory]);
 
-  const filteredAssets = assets.filter((a) => a.category === activeCategory);
+  // Reset search and page when category changes; reset page when search changes
+  useEffect(() => {
+    setCurrentPage(0);
+    setSearch("");
+  }, [activeCategory]);
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [search]);
+
+  const searchLower = search.toLowerCase();
+  const filteredAssets = assets.filter((a) => {
+    if (a.category !== activeCategory) return false;
+    if (!search) return true;
+    return (
+      safeStr(a.company)?.toLowerCase().includes(searchLower) ||
+      safeStr(a.assetName)?.toLowerCase().includes(searchLower) ||
+      safeStr(a.assetNameCode)?.toLowerCase().includes(searchLower) ||
+      a.description?.toLowerCase().includes(searchLower) ||
+      a.about?.toLowerCase().includes(searchLower)
+    );
+  });
+  const totalPages = Math.ceil(filteredAssets.length / ITEMS_PER_PAGE);
+  const pagedAssets = filteredAssets.slice(
+    currentPage * ITEMS_PER_PAGE,
+    (currentPage + 1) * ITEMS_PER_PAGE,
+  );
 
   const amount = parseFloat(rawAmount.replace(/,/g, "")) || 0;
   const priceUnit = selectedAsset?.pricePerUnit ?? 0;
@@ -321,6 +354,7 @@ export default function Invest() {
     setStep("detail");
     setRawAmount("");
     setAmountError("");
+    setPurchaseError("");
   };
 
   const handleAmountChange = (val: string) => {
@@ -344,9 +378,16 @@ export default function Invest() {
 
   const handleConfirmPurchase = () => {
     if (!selectedAsset) return;
+    setPurchaseError("");
     purchase(
       { asset: selectedAsset, amount, units },
-      { onSuccess: () => setStep("success"), onError: () => setStep("error") },
+      {
+        onSuccess: () => setStep("success"),
+        onError: (err) => {
+          setPurchaseError(typeof err === "string" ? err : "Something went wrong. Please try again.");
+          setStep("error");
+        },
+      },
     );
   };
 
@@ -387,21 +428,23 @@ export default function Invest() {
                   </p>
                 )}
               </div>
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <button
+                className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+                onClick={() => setLocation("/portfolio")}
+                aria-label="View portfolio"
+              >
                 <PieChart className="w-6 h-6 text-primary" />
-              </div>
+              </button>
             </div>
             <div className="flex gap-2">
-              {/* <Button className="flex-1" data-testid="button-deposit">
-                <Wallet className="w-4 h-4 mr-1.5" />
-                Deposit
-              </Button> */}
               <Button
                 variant="outline"
-                className="w-20"
-                data-testid="button-withdraw-invest"
+                size="sm"
+                onClick={() => setLocation("/portfolio")}
+                data-testid="button-view-portfolio"
               >
-                Withdraw
+                <PieChart className="w-4 h-4 mr-1.5" />
+                View Portfolio
               </Button>
             </div>
           </CardContent>
@@ -479,7 +522,7 @@ export default function Invest() {
                 onClick={() => setActiveCategory(tab.id)}
                 data-testid={`invest-category-${tab.id}`}
               >
-                {tab.label}
+                <span className="uppercase">{tab.label}</span>
               </Button>
             ))}
           </div>
@@ -488,7 +531,7 @@ export default function Invest() {
         {/* Asset Cards */}
         <section>
           <div className="flex items-center justify-between gap-2 mb-3">
-            <h3 className="font-semibold text-lg">{activeCategory}</h3>
+            <h3 className="font-semibold text-lg uppercase">{activeCategory}</h3>
             {!isLoading && (
               <Badge variant="secondary">
                 {filteredAssets.length} asset
@@ -496,6 +539,29 @@ export default function Invest() {
               </Badge>
             )}
           </div>
+
+          {/* Search bar */}
+          {!isLoading && !isError && (
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <Input
+                type="text"
+                placeholder={`Search ${activeCategory}…`}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 pr-9 h-9 text-sm"
+              />
+              {search && (
+                <button
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          )}
 
           {isError && (
             <div className="flex flex-col items-center gap-3 py-12 text-center">
@@ -532,51 +598,49 @@ export default function Invest() {
               <div className="flex flex-col items-center gap-2 py-12 text-center">
                 <BarChart3 className="w-10 h-10 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">
-                  No assets in this category yet.
+                  {search
+                    ? `No assets match "${search}"`
+                    : "No assets in this category yet."}
                 </p>
+                {search && (
+                  <Button variant="outline" size="sm" onClick={() => setSearch("")}>
+                    Clear search
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-                {filteredAssets.map((asset) => {
-                  const { icon: Icon, color } = getCategoryStyle(
-                    asset.category,
-                  );
+                {pagedAssets.map((asset) => {
+                  const { icon: Icon, color } = getCategoryStyle(asset.category);
 
-                  // ── Primary display name: assetName → assetNameCode → category ──
                   const displayName =
-                    asset.company ??
-                    asset.assetName ??
-                    asset.assetNameCode ??
+                    safeStr(asset.company) ??
+                    safeStr(asset.assetName) ??
+                    safeStr(asset.assetNameCode) ??
                     asset.category;
 
-                  // ── Subtitle: description or about (truncated) ──
                   const subtitle = asset.description ?? asset.about ?? null;
 
-                  // ── Returns label ──
-                  const returns = asset.rate
+                  const returns = isValidNum(asset.rate)
                     ? `${asset.rate}% p.a.`
-                    : asset.interest
+                    : isValidNum(asset.interest)
                       ? `${asset.interest}% p.a.`
-                      : asset.yearToDate
-                        ? `${asset.yearToDate >= 0 ? "+" : ""}${asset.yearToDate}% YTD`
-                        : asset.percentGrowth
-                          ? `${asset.percentGrowth > 0 ? "+" : ""}${asset.percentGrowth}%`
+                      : isValidNum(asset.yearToDate)
+                        ? `${asset.yearToDate! >= 0 ? "+" : ""}${asset.yearToDate}% YTD`
+                        : isValidNum(asset.percentGrowth)
+                          ? `${asset.percentGrowth! > 0 ? "+" : ""}${asset.percentGrowth}%`
                           : null;
 
-                  const minAmt = asset.minPayment
-                    ? `Min ₦${Number(asset.minPayment).toLocaleString()}`
+                  const minAmt = isValidNum(asset.minPayment)
+                    ? `Min ₦${asset.minPayment!.toLocaleString()}`
                     : null;
                   const tagList = asset.tags
-                    ? asset.tags
-                        .split(",")
-                        .map((t) => t.trim())
-                        .filter(Boolean)
+                    ? asset.tags.split(",").map((t) => t.trim()).filter(Boolean)
                     : [];
                   const catParams = getCategoryParams(asset);
 
-                  // ── Price display ──
-                  const priceDisplay = asset.pricePerUnit
-                    ? `₦${Number(asset.pricePerUnit).toLocaleString()}`
+                  const priceDisplay = isValidNum(asset.pricePerUnit)
+                    ? `₦${asset.pricePerUnit!.toLocaleString()}`
                     : null;
 
                   return (
@@ -607,10 +671,10 @@ export default function Invest() {
                                 <p className="font-semibold text-sm leading-tight truncate">
                                   {displayName}
                                 </p>
-                                {/* Asset code badge if both name and code exist */}
-                                {asset.assetName && asset.assetNameCode && (
+                                {/* Asset code badge — guard against "NaN" strings */}
+                                {safeStr(asset.assetNameCode) && (
                                   <span className="text-[10px] text-muted-foreground font-mono">
-                                    {asset.assetNameCode}
+                                    {safeStr(asset.assetNameCode)}
                                   </span>
                                 )}
                               </div>
@@ -704,12 +768,38 @@ export default function Invest() {
                             ))}
                           </div>
                         )}
+
                       </CardContent>
                     </Card>
                   );
                 })}
               </div>
             ))}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between gap-3 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 0}
+                onClick={() => setCurrentPage((p) => p - 1)}
+              >
+                ← Previous
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Page {currentPage + 1} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages - 1}
+                onClick={() => setCurrentPage((p) => p + 1)}
+              >
+                Next →
+              </Button>
+            </div>
+          )}
         </section>
 
         {/* Unlock CTA */}
@@ -755,9 +845,11 @@ export default function Invest() {
                 selectedAsset.category,
               );
               const displayName =
-                selectedAsset.assetName ??
-                selectedAsset.assetNameCode ??
+                safeStr(selectedAsset.company) ??
+                safeStr(selectedAsset.assetName) ??
+                safeStr(selectedAsset.assetNameCode) ??
                 selectedAsset.category;
+              const displayCode = safeStr(selectedAsset.assetNameCode);
               const subtitle =
                 selectedAsset.description ?? selectedAsset.about ?? null;
               const tagList = selectedAsset.tags
@@ -780,21 +872,24 @@ export default function Invest() {
                           <Icon className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <SheetTitle className="text-left text-lg leading-tight">
+                          <SheetTitle className="text-left text-lg leading-tight truncate">
                             {displayName}
                           </SheetTitle>
-                          {selectedAsset.assetName &&
-                            selectedAsset.assetNameCode && (
-                              <p className="text-xs text-muted-foreground font-mono">
-                                {selectedAsset.assetNameCode}
-                              </p>
+                          {/* Category badge + code on same line */}
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span className="text-xs text-muted-foreground">
+                              {selectedAsset.category}
+                            </span>
+                            {displayCode && (
+                              <span className="text-xs text-muted-foreground font-mono">
+                                · {displayCode}
+                              </span>
                             )}
-                          {selectedAsset.pricePerUnit && (
+                          </div>
+                          {/* Price — only when valid */}
+                          {isValidNum(selectedAsset.pricePerUnit) && (
                             <p className="text-sm font-bold mt-0.5">
-                              ₦
-                              {Number(
-                                selectedAsset.pricePerUnit,
-                              ).toLocaleString()}
+                              ₦{selectedAsset.pricePerUnit!.toLocaleString()}
                               {selectedAsset.perUnitName && (
                                 <span className="text-xs font-normal text-muted-foreground ml-1">
                                   / {selectedAsset.perUnitName}
@@ -807,6 +902,21 @@ export default function Invest() {
                     </SheetHeader>
 
                     <div className="flex-1 overflow-y-auto p-5 space-y-4 pb-4">
+                      {/* TradingView chart — stocks only, shown before About */}
+                      {(() => {
+                        const isStock = selectedAsset.category?.toLowerCase().includes("stock");
+                        const nseSymbol = isStock ? resolveStockSymbol(selectedAsset) : null;
+                        if (!nseSymbol) return null;
+                        return (
+                          <div className="h-72 w-full rounded-xl overflow-hidden border">
+                            <TradingViewWidget
+                              symbol={nseSymbol}
+                              theme={theme === "dark" ? "dark" : "light"}
+                            />
+                          </div>
+                        );
+                      })()}
+
                       {/* About / description */}
                       {subtitle && (
                         <Card className="border">
@@ -820,124 +930,6 @@ export default function Invest() {
                           </CardContent>
                         </Card>
                       )}
-
-                      {/* Key metrics */}
-                      <div className="grid grid-cols-2 gap-3">
-                        {selectedAsset.interest && (
-                          <Card className="border">
-                            <CardContent className="p-3 text-center">
-                              <p className="text-xs text-muted-foreground mb-0.5">
-                                Returns
-                              </p>
-                              <p className="font-semibold text-sm text-green-600 dark:text-green-400">
-                                {selectedAsset.interest}% p.a.
-                              </p>
-                            </CardContent>
-                          </Card>
-                        )}
-                        {selectedAsset.rate && (
-                          <Card className="border">
-                            <CardContent className="p-3 text-center">
-                              <p className="text-xs text-muted-foreground mb-0.5">
-                                Rate
-                              </p>
-                              <p className="font-semibold text-sm text-green-600 dark:text-green-400">
-                                {selectedAsset.rate}% p.a.
-                              </p>
-                            </CardContent>
-                          </Card>
-                        )}
-                        {selectedAsset.yearToDate !== null &&
-                          selectedAsset.yearToDate !== undefined && (
-                            <Card className="border">
-                              <CardContent className="p-3 text-center">
-                                <p className="text-xs text-muted-foreground mb-0.5">
-                                  YTD Return
-                                </p>
-                                <p
-                                  className={`font-semibold text-sm ${(selectedAsset.yearToDate ?? 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}
-                                >
-                                  {(selectedAsset.yearToDate ?? 0) >= 0
-                                    ? "+"
-                                    : ""}
-                                  {selectedAsset.yearToDate}%
-                                </p>
-                              </CardContent>
-                            </Card>
-                          )}
-                        {selectedAsset.minPayment && (
-                          <Card className="border">
-                            <CardContent className="p-3 text-center">
-                              <p className="text-xs text-muted-foreground mb-0.5">
-                                Min. Amount
-                              </p>
-                              <p className="font-semibold text-sm">
-                                ₦
-                                {Number(
-                                  selectedAsset.minPayment,
-                                ).toLocaleString()}
-                              </p>
-                            </CardContent>
-                          </Card>
-                        )}
-                        {selectedAsset.riskLevel && (
-                          <Card className="border">
-                            <CardContent className="p-3 text-center">
-                              <p className="text-xs text-muted-foreground mb-0.5">
-                                Risk Level
-                              </p>
-                              <p className="font-semibold text-sm">
-                                {selectedAsset.riskLevel}
-                              </p>
-                            </CardContent>
-                          </Card>
-                        )}
-                        {selectedAsset.tenure && (
-                          <Card className="border">
-                            <CardContent className="p-3 text-center">
-                              <p className="text-xs text-muted-foreground mb-0.5">
-                                Tenure
-                              </p>
-                              <p className="font-semibold text-sm">
-                                {selectedAsset.tenure}
-                              </p>
-                            </CardContent>
-                          </Card>
-                        )}
-                        {selectedAsset.percentGrowth !== null &&
-                          selectedAsset.percentGrowth !== undefined && (
-                            <Card className="border">
-                              <CardContent className="p-3 text-center">
-                                <p className="text-xs text-muted-foreground mb-0.5">
-                                  Growth
-                                </p>
-                                <p
-                                  className={`font-semibold text-sm ${(selectedAsset.percentGrowth ?? 0) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}
-                                >
-                                  {(selectedAsset.percentGrowth ?? 0) >= 0
-                                    ? "+"
-                                    : ""}
-                                  {selectedAsset.percentGrowth}%
-                                </p>
-                              </CardContent>
-                            </Card>
-                          )}
-                        {selectedAsset.marketCap && (
-                          <Card className="border">
-                            <CardContent className="p-3 text-center">
-                              <p className="text-xs text-muted-foreground mb-0.5">
-                                Market Cap
-                              </p>
-                              <p className="font-semibold text-sm">
-                                ₦
-                                {Number(
-                                  selectedAsset.marketCap,
-                                ).toLocaleString()}
-                              </p>
-                            </CardContent>
-                          </Card>
-                        )}
-                      </div>
 
                       {/* Category market data */}
                       {catParams.length > 0 && (
@@ -993,22 +985,6 @@ export default function Invest() {
                         </div>
                       )}
 
-                      {/* Locked notice */}
-                      {selectedAsset.locked && (
-                        <Card className="border border-amber-500/20 bg-amber-500/5">
-                          <CardContent className="p-4 flex items-center gap-3">
-                            <Lock className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                            <div>
-                              <p className="text-sm font-medium">
-                                Asset Locked
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Complete learning modules to unlock this asset
-                              </p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
 
                       {/* Trust badges */}
                       <div className="space-y-2.5">
@@ -1043,28 +1019,12 @@ export default function Invest() {
                       <Button
                         className="w-full"
                         size="lg"
-                        disabled={selectedAsset.locked}
                         onClick={() => setStep("invest")}
                         data-testid="button-go-invest"
                       >
                         <PlayCircle className="w-5 h-5 mr-2" />
-                        {selectedAsset.locked
-                          ? "Locked — Learn to Unlock"
-                          : `Invest in ${displayName}`}
+                        {`Invest in ${displayName}`}
                       </Button>
-                      {selectedAsset.locked && (
-                        <Button
-                          variant="ghost"
-                          className="w-full"
-                          onClick={() => {
-                            handleCloseSheet();
-                            setLocation("/learn");
-                          }}
-                          data-testid="button-go-learn-sheet"
-                        >
-                          Go to Learn
-                        </Button>
-                      )}
                     </div>
                   </div>
                 );
@@ -1314,7 +1274,7 @@ export default function Invest() {
                             Processing…
                           </>
                         ) : (
-                          <>Confirm — ₦{amount.toLocaleString()}</>
+                          <>Process — ₦{amount.toLocaleString()}</>
                         )}
                       </Button>
                       <Button
@@ -1430,8 +1390,7 @@ export default function Invest() {
                         Purchase Failed
                       </h2>
                       <p className="text-muted-foreground text-sm">
-                        Something went wrong processing your investment. Please
-                        try again.
+                        {purchaseError || "Something went wrong processing your investment. Please try again."}
                       </p>
                     </div>
                     <div className="w-full max-w-xs space-y-2">

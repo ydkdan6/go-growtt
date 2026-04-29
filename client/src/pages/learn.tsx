@@ -113,7 +113,8 @@ function ModuleCard({
   const displayModule = trackedModule ?? module;
   const moduleLessons = displayModule.lessons ?? [];
   const lessonCount = moduleLessons.length || displayModule.lessonCount || 0;
-  const isLocked = module.locked || !isUnlocked;
+  // isUnlocked (sequential frontend logic) takes precedence over backend locked flag
+  const isLocked = !isUnlocked;
 
   const completedLessons = moduleLessons.filter((l) => l.status === true).length;
   const progressPct = lessonCount > 0 ? Math.round((completedLessons / lessonCount) * 100) : 0;
@@ -373,19 +374,36 @@ export default function Learn() {
     activeLevel === "all" ? LEVELS : LEVELS.filter((l) => l.id === activeLevel);
 
   const renderModules = (moduleList: Module[], levelId: string) => {
-    const unlocked = isLevelUnlocked(levelId);
+    const levelUnlocked = isLevelUnlocked(levelId);
+
+    // Lessons already completed in all levels that come before this one
+    const prevLevelOffset =
+      levelId === "intermediate" ? beginnerLessonCount :
+      levelId === "advanced"     ? beginnerLessonCount + intermediateLessonCount :
+      0;
+
+    // Each module within a level is unlocked once the user has completed
+    // all lessons that precede it (cumulative within this level + previous levels)
+    let cumulativeWithinLevel = 0;
+
     return (
       <div className="space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
-        {moduleList.map((module) => (
-          <ModuleCard
-            key={module.id}
-            module={module}
-            userId={userId ?? ""}
-            isUnlocked={unlocked}
-            onNavigateLesson={handleLessonNavigate}
-            onExpand={handleModuleExpand}
-          />
-        ))}
+        {moduleList.map((module) => {
+          const threshold = prevLevelOffset + cumulativeWithinLevel;
+          const isModuleUnlocked = levelUnlocked && lessonProgress >= threshold;
+          cumulativeWithinLevel += module.lessons?.length || module.lessonCount || 0;
+
+          return (
+            <ModuleCard
+              key={module.id}
+              module={module}
+              userId={userId ?? ""}
+              isUnlocked={isModuleUnlocked}
+              onNavigateLesson={handleLessonNavigate}
+              onExpand={handleModuleExpand}
+            />
+          );
+        })}
       </div>
     );
   };

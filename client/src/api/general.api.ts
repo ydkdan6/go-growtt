@@ -105,9 +105,34 @@ export const onboardUserApi = async ({
   return data;
 };
 
-//  ─ Get User Detail                              
+//  ─ Get User Detail
 export const getUserDetailApi = async (userId: string | number): Promise<UserDetail> => {
   const { data } = await apiClient.get<UserDetail>(AUTH_ENDPOINTS.GET_USER(userId));
+  return data;
+};
+
+//  ─ Update User Profile
+export const updateUserProfileApi = async (
+  userId: string,
+  payload: { full_name?: string; phone_number?: string; address?: string }
+): Promise<UserDetail> => {
+  const { data } = await apiClient.put<UserDetail>(`/custom-user/update/${userId}/`, payload);
+  return data;
+};
+
+//  ─ Update User Profile Image
+export const updateUserImageApi = async (
+  userId: string,
+  imageFile: File
+): Promise<UserDetail> => {
+  const form = new FormData();
+  form.append("image", imageFile);
+  form.append("user_id", userId);
+  const { data } = await apiClient.put<UserDetail>(
+    `/custom-user/update/user-image/${userId}/`,
+    form,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
   return data;
 };
 

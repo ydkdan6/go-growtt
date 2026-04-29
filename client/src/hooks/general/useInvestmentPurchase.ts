@@ -22,15 +22,19 @@ export const useInvestmentPurchase = () => {
 
   return useMutation<void, string, PurchaseInput>({
     mutationFn: async ({ asset, amount }) => {
+      const payload = {
+        custom_user_id:      userId,
+        investment_asset_id: asset.id,
+        initial_amount:      String(amount),
+        status:              true,
+        pub_date:            new Date().toISOString(),
+      };
+      console.log("[add-investment] payload →", payload);
       try {
-        await apiClient.put("/custom-user/add-investment/", {
-          custom_user_id:      userId,
-          investment_asset_id: asset.id,
-          initial_amount:      String(amount),
-          status:              true,
-          pub_date:            new Date().toISOString(),
-        });
-      } catch (err) {
+        const res = await apiClient.put("/custom-user/add-investment/", payload);
+        console.log("[add-investment] response →", res.data);
+      } catch (err: any) {
+        console.error("[add-investment] error →", err?.response?.status, err?.response?.data);
         throw parseApiError(err);
       }
     },
