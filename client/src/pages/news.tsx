@@ -54,7 +54,7 @@ function ArticleSkeleton() {
   return (
     <Card className="border">
       <CardContent className="p-4 flex gap-3">
-        <div className="w-12 h-12 rounded-xl bg-muted animate-pulse flex-shrink-0" />
+        <div className="w-20 h-14 rounded-xl bg-muted animate-pulse flex-shrink-0" />
         <div className="flex-1 space-y-2">
           <div className="h-3 bg-muted animate-pulse rounded w-1/3" />
           <div className="h-4 bg-muted animate-pulse rounded w-full" />
@@ -78,7 +78,7 @@ export default function News() {
 
   //   Derived                                ─
   // Build category tabs dynamically from API tags
-  const uniqueTags = [...new Set(blogs.map((b) => b.tag).filter(Boolean))];
+  const uniqueTags = Array.from(new Set(blogs.map((b) => b.tag).filter(Boolean)));
 
   const categories = [
     { id: "all", label: "All", icon: Newspaper },
@@ -162,86 +162,99 @@ export default function News() {
 
         {/*   Loading: featured skeleton   */}
         {isLoading && (
-          <div className="rounded-2xl bg-muted animate-pulse h-44 w-full" />
+          <Card className="border-0 overflow-hidden">
+            <div className="h-48 bg-muted animate-pulse" />
+            <CardContent className="p-4 space-y-2">
+              <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+              <div className="h-3 bg-muted animate-pulse rounded w-full" />
+              <div className="h-3 bg-muted animate-pulse rounded w-1/4" />
+            </CardContent>
+          </Card>
         )}
 
         {/*   Featured article — first blog from API   */}
         {!isLoading && !isError && featuredBlog && (
           <Card
-            className="border-0 bg-gradient-to-br from-primary via-primary/90 to-primary/70 overflow-hidden cursor-pointer hover-elevate"
+            className="border-0 overflow-hidden cursor-pointer hover-elevate"
             data-testid="featured-article"
           >
-            <CardContent className="p-5 relative">
-              {/* Cover image if available */}
+            {/* Hero image */}
+            <div className="relative h-48 bg-gradient-to-br from-primary via-primary/90 to-primary/70">
               {featuredBlog.imageUrl && (
                 <img
                   src={featuredBlog.imageUrl}
                   alt={featuredBlog.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-20"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               )}
+              {/* Gradient overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-              <div className="absolute top-3 right-3 flex items-center gap-2">
-                <Badge className="bg-orange-500 text-white gap-1">
+              {/* Top badges */}
+              <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                <Badge className="bg-orange-500 text-white gap-1 shadow-sm">
                   <Flame className="w-3 h-3" />
                   Trending
                 </Badge>
+                {featuredBlog.locked && (
+                  <Badge className="bg-black/50 text-white border-0 gap-1 backdrop-blur-sm">
+                    <Lock className="w-3 h-3" />
+                    {featuredBlog.requiredSeed} seeds
+                  </Badge>
+                )}
               </div>
 
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-3">
+              {/* Text over image at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <div className="flex items-center gap-2 mb-1.5">
                   {featuredBlog.tag && (
-                    <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                    <Badge variant="secondary" className="bg-white/20 text-white border-0 backdrop-blur-sm text-[10px]">
                       {featuredBlog.tag}
                     </Badge>
                   )}
-                  <span className="text-primary-foreground/70 text-xs flex items-center gap-1">
+                  <span className="text-white/70 text-xs flex items-center gap-1">
                     <Eye className="w-3 h-3" />
                     {featuredBlog.views.toLocaleString()} views
                   </span>
-                  {featuredBlog.locked && (
-                    <Badge className="bg-white/20 text-white border-0 gap-1 ml-auto">
-                      <Lock className="w-3 h-3" />
-                      {featuredBlog.requiredSeed} seeds
-                    </Badge>
-                  )}
                 </div>
-
-                <h2 className="text-xl font-bold text-primary-foreground mb-2 leading-tight">
+                <h2 className="text-lg font-bold text-white leading-snug line-clamp-2">
                   {featuredBlog.title}
                 </h2>
-                <p className="text-primary-foreground/80 text-sm line-clamp-2 mb-4">
-                  {featuredBlog.description}
-                </p>
+              </div>
+            </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-primary-foreground/60 text-xs">{featuredBlog.authors}</span>
-                    <span className="text-primary-foreground/40 text-xs">·</span>
-                    <span className="text-primary-foreground/60 text-xs flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {formatDate(featuredBlog.pubDate)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10"
-                      onClick={(e) => { e.stopPropagation(); toggleSave(featuredBlog.id); }}
-                      data-testid="save-featured"
-                    >
-                      <Bookmark className={`w-4 h-4 ${savedArticles.includes(featuredBlog.id) ? "fill-current" : ""}`} />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10"
-                      data-testid="share-featured"
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+            {/* Content below image */}
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                {featuredBlog.description}
+              </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">{featuredBlog.authors}</span>
+                  <span className="text-muted-foreground/40 text-xs">·</span>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {formatDate(featuredBlog.pubDate)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={(e) => { e.stopPropagation(); toggleSave(featuredBlog.id); }}
+                    data-testid="save-featured"
+                  >
+                    <Bookmark className={`w-4 h-4 ${savedArticles.includes(featuredBlog.id) ? "fill-current text-primary" : ""}`} />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    data-testid="share-featured"
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -286,15 +299,15 @@ export default function News() {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      {/* Image or icon */}
+                      {/* Thumbnail */}
                       {blog.imageUrl ? (
                         <img
                           src={blog.imageUrl}
                           alt={blog.title}
-                          className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                          className="w-20 h-14 rounded-xl object-cover flex-shrink-0"
                         />
                       ) : (
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getCategoryColor(blog.tag)}`}>
+                        <div className={`w-20 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${getCategoryColor(blog.tag)}`}>
                           {getCategoryIcon(blog.tag)}
                         </div>
                       )}

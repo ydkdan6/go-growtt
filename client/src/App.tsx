@@ -59,11 +59,13 @@ const isAuthenticated = (): boolean => {
 
 //  ─ ProtectedRoute                              ─
 // Redirects unauthenticated users to "/" (Login).
-function ProtectedRoute({ component: Component }: { component: () => JSX.Element }) {
+// Accepts optional params so route segments (e.g. :id) reach the component.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ProtectedRoute({ component: Component, params }: { component: (p: any) => JSX.Element; params?: any }) {
   if (!isAuthenticated()) {
     return <Redirect to="/" />;
   }
-  return <Component />;
+  return <Component params={params} />;
 }
 
 function Router() {
@@ -94,13 +96,13 @@ function Router() {
 
       {/*   Protected: App   */}
       <Route path="/dashboard">{() => <ProtectedRoute component={Home} />}</Route>
-      <Route path="/course/:id">{() => <ProtectedRoute component={Course} />}</Route>
+      <Route path="/course/:id">{(params) => <ProtectedRoute component={Course} params={params} />}</Route>
       <Route path="/learn">{() => <ProtectedRoute component={Learn} />}</Route>
-      <Route path="/lesson/:id">{() => <ProtectedRoute component={LessonDetail} />}</Route>
+      <Route path="/lesson/:id">{(params) => <ProtectedRoute component={LessonDetail} params={params} />}</Route>
       <Route path="/invest">{() => <ProtectedRoute component={Invest} />}</Route>
-      <Route path="/invest/:category">{() => <ProtectedRoute component={AssetListing} />}</Route>
+      <Route path="/invest/:category">{(params) => <ProtectedRoute component={AssetListing} params={params} />}</Route>
       <Route path="/portfolio">{() => <ProtectedRoute component={Portfolio} />}</Route>
-      <Route path="/portfolio/:investmentId">{(params) => isAuthenticated() ? <PortfolioAsset params={params} /> : <Redirect to="/" />}</Route>
+      <Route path="/portfolio/:investmentId">{(params) => <ProtectedRoute component={PortfolioAsset} params={params} />}</Route>
       <Route path="/profile">{() => <ProtectedRoute component={Profile} />}</Route>
       <Route path="/leaderboard">{() => <ProtectedRoute component={Leaderboard} />}</Route>
       <Route path="/news">{() => <ProtectedRoute component={News} />}</Route>

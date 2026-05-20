@@ -73,7 +73,7 @@ export default function PaymentCallback() {
     error: verifyError,
   } = useVerifyPurchase(reference, userId);
 
-  const currentSeeds = Number(user?.wallet_balance) || 0;
+  const currentSeeds = Number(user?.seed_balance) || 0;
   const currentDemoBalance = Number(user?.demo_balance) || 0;
 
   // ── Guards ─────────────────────────────────────────────────────────────
@@ -90,10 +90,10 @@ export default function PaymentCallback() {
     if (!verifyData || hasStartedChain) return;
 
     // status is boolean true from your backend
+    const statusVal = verifyData.status as unknown;
     const isSuccess =
-      verifyData.status === true ||
-      (typeof verifyData.status === "string" &&
-        verifyData.status.toLowerCase() === "success");
+      statusVal === true ||
+      (typeof statusVal === "string" && statusVal.toLowerCase() === "success");
 
     if (!isSuccess) {
       setVerifyStep("payment_failed");

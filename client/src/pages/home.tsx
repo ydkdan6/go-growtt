@@ -639,7 +639,6 @@ export default function Home() {
           onOpenChange={setShowBuySeeds}
           userId={userId}
           currentSeeds={userSeeds}
-          currentDemoBalance={demoBalance}
         />
       )}
 
