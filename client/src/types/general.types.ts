@@ -325,8 +325,9 @@ export const adaptBlog = (api: ApiBlog): Blog => ({
 
 export interface ApiInvestmentAsset {
   id: string;
-  company: string | null;       
+  company: string | null;
   category: string;
+  logo: string | null;
   investment_icon: string | null;
   investment_type: string | null;
   about: string | null;
@@ -363,6 +364,7 @@ export interface InvestmentAsset {
   id: string;
   company: string | null;        // ← was assetName
   category: string;
+  logo: string | null;
   investmentIcon: string | null;
   investmentType: string | null;
   about: string | null;
@@ -399,8 +401,9 @@ export interface InvestmentAsset {
 
 export const adaptInvestmentAsset = (api: ApiInvestmentAsset): InvestmentAsset => ({
   id:             api.id,
-  company:        api.company,                                                    // ← new
+  company:        api.company,
   category:       api.category,
+  logo:           api.logo,
   investmentIcon: api.investment_icon,
   investmentType: api.investment_type,
   about:          api.about,
@@ -514,6 +517,13 @@ export interface PortfolioInvestment {
   company: string | null;
   price_per_unit: string | null;
   per_unit_name: string | null;
+  // optional fields the API may return
+  initial_amount?: string | null;
+  final_amount?: string | null;
+  units?: string | null;
+  asset_id?: string | null;
+  maturity_date?: string | null;
+  return_rate?: string | null;
 }
 
 export interface Portfolio {

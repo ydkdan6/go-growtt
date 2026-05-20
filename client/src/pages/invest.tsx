@@ -128,6 +128,10 @@ const getCategoryStyle = (
   return { icon: BarChart3, color: "bg-primary" };
 };
 
+// Returns a valid logo URL or null (treats empty string as absent)
+const logoUrl = (s: string | null | undefined): string | null =>
+  s && s.trim() !== "" ? s.trim() : null;
+
 // ─── Category-specific param rows ────────────────────────────────────────────
 const isValidNum = (v: number | null | undefined): v is number =>
   v !== null && v !== undefined && !Number.isNaN(v);
@@ -654,9 +658,13 @@ export default function Invest() {
                         {/* Top row: icon + name + price + lock */}
                         <div className="flex items-start gap-3 mb-3">
                           <div
-                            className={`w-11 h-11 rounded-xl ${color} flex items-center justify-center relative flex-shrink-0`}
+                            className={`w-11 h-11 rounded-xl ${logoUrl(asset.logo) ? "bg-white border" : color} flex items-center justify-center relative flex-shrink-0 overflow-hidden`}
                           >
-                            <Icon className="w-5 h-5 text-white" />
+                            {logoUrl(asset.logo) ? (
+                              <img src={logoUrl(asset.logo)!} alt={displayName} className="w-full h-full object-contain p-1" />
+                            ) : (
+                              <Icon className="w-5 h-5 text-white" />
+                            )}
                             {asset.locked && (
                               <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-card border flex items-center justify-center">
                                 <Lock className="w-3 h-3 text-muted-foreground" />
@@ -867,9 +875,13 @@ export default function Invest() {
                     <SheetHeader className="p-5 pb-0">
                       <div className="flex items-center gap-3 mb-1">
                         <div
-                          className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center flex-shrink-0`}
+                          className={`w-12 h-12 rounded-xl ${logoUrl(selectedAsset.logo) ? "bg-white border" : color} flex items-center justify-center flex-shrink-0 overflow-hidden`}
                         >
-                          <Icon className="w-6 h-6 text-white" />
+                          {logoUrl(selectedAsset.logo) ? (
+                            <img src={logoUrl(selectedAsset.logo)!} alt={displayName} className="w-full h-full object-contain p-1.5" />
+                          ) : (
+                            <Icon className="w-6 h-6 text-white" />
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <SheetTitle className="text-left text-lg leading-tight truncate">
@@ -1193,9 +1205,13 @@ export default function Invest() {
                     <div className="flex-1 overflow-y-auto p-5 space-y-5">
                       <div className="text-center py-2">
                         <div
-                          className={`w-16 h-16 rounded-2xl ${color} flex items-center justify-center mx-auto mb-4`}
+                          className={`w-16 h-16 rounded-2xl ${logoUrl(selectedAsset.logo) ? "bg-white border" : color} flex items-center justify-center mx-auto mb-4 overflow-hidden`}
                         >
-                          <Icon className="w-8 h-8 text-white" />
+                          {logoUrl(selectedAsset.logo) ? (
+                            <img src={logoUrl(selectedAsset.logo)!} alt={displayName} className="w-full h-full object-contain p-2" />
+                          ) : (
+                            <Icon className="w-8 h-8 text-white" />
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground mb-1">
                           You are investing

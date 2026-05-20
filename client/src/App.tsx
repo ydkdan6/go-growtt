@@ -18,6 +18,7 @@ import LessonDetail from "./pages/LessonDetail";
 import Invest from "./pages/invest";
 import AssetListing from "./pages/asset-listing";
 import Portfolio from "./pages/portfolio";
+import PortfolioAsset from "./pages/portfolio-asset";
 import Profile from "./pages/profile";
 import Leaderboard from "./pages/leaderboard";
 import News from "./pages/news";
@@ -99,6 +100,7 @@ function Router() {
       <Route path="/invest">{() => <ProtectedRoute component={Invest} />}</Route>
       <Route path="/invest/:category">{() => <ProtectedRoute component={AssetListing} />}</Route>
       <Route path="/portfolio">{() => <ProtectedRoute component={Portfolio} />}</Route>
+      <Route path="/portfolio/:investmentId">{(params) => isAuthenticated() ? <PortfolioAsset params={params} /> : <Redirect to="/" />}</Route>
       <Route path="/profile">{() => <ProtectedRoute component={Profile} />}</Route>
       <Route path="/leaderboard">{() => <ProtectedRoute component={Leaderboard} />}</Route>
       <Route path="/news">{() => <ProtectedRoute component={News} />}</Route>

@@ -20,6 +20,7 @@ import {
   Rocket,
   AlertCircle,
   RefreshCw,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 import { usePortfolio } from "@/hooks/general/usePortfolio";
@@ -57,14 +58,21 @@ const formatTime = (iso: string) => {
 const assetLabel = (inv: PortfolioInvestment): string =>
   inv.company ?? inv.category ?? inv.investment_type ?? "Unknown Asset";
 
+const fmtNGN = (n: number) =>
+  `₦${n.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const logoUrl = (s: string | null | undefined): string | null =>
+  s && s.trim() !== "" ? s.trim() : null;
+
 // Group investments by category for the breakdown chart
 const groupByCategory = (investments: PortfolioInvestment[]) => {
-  const map: Record<string, { count: number; total: number }> = {};
+  const map: Record<string, { count: number; invested: number; current: number }> = {};
   for (const inv of investments) {
     const key = inv.category ?? inv.investment_type ?? "Other";
-    if (!map[key]) map[key] = { count: 0, total: 0 };
+    if (!map[key]) map[key] = { count: 0, invested: 0, current: 0 };
     map[key].count += 1;
-    map[key].total += Number(inv.amount ?? 0);
+    map[key].invested += Number(inv.amount ?? 0);
+    map[key].current  += Number(inv.final_amount ?? inv.amount ?? 0);
   }
   return Object.entries(map).map(([name, v]) => ({ name, ...v }));
 };
@@ -74,11 +82,14 @@ export default function Portfolio() {
   const [, setLocation] = useLocation();
   const { data: portfolio, isLoading, isError, refetch } = usePortfolio();
 
-  const investments = portfolio?.investments ?? [];
+  const investments    = portfolio?.investments ?? [];
+  // portfolio_value is the server-authoritative current value — same figure shown on /invest
   const portfolioValue = portfolio?.portfolio_value ?? 0;
-  const totalInvested = investments.reduce((sum, i) => sum + Number(i.amount ?? 0), 0);
-  const activeCount = investments.filter((i) => i.amount !== null).length;
-  const breakdown = groupByCategory(investments.filter((i) => i.amount !== null));
+  const totalInvested  = investments.reduce((sum, i) => sum + Number(i.amount ?? 0), 0);
+  const totalPnL       = portfolioValue - totalInvested;
+  const totalPnLPct    = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
+  const activeCount    = investments.filter((i) => i.amount !== null).length;
+  const breakdown      = groupByCategory(investments.filter((i) => i.amount !== null));
 
   return (
     <div className="min-h-screen bg-background pb-10">
@@ -100,19 +111,26 @@ export default function Portfolio() {
         {/* Value summary */}
         <Card className="border bg-gradient-to-br from-primary/10 to-primary/5">
           <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground mb-1">Total Portfolio Value</p>
+            <p className="text-sm text-muted-foreground mb-1">Current Portfolio Value</p>
             {isLoading ? (
               <div className="h-10 w-48 bg-muted animate-pulse rounded" />
             ) : (
-              <h1 className="text-4xl font-bold">
-                ₦{portfolioValue.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </h1>
+              <h1 className="text-4xl font-bold">{fmtNGN(portfolioValue)}</h1>
             )}
             {!isLoading && (
-              <div className="flex gap-4 mt-3">
+              <div className="flex flex-wrap gap-4 mt-3">
                 <div>
                   <p className="text-[10px] text-muted-foreground">Total Invested</p>
-                  <p className="text-sm font-semibold">₦{totalInvested.toLocaleString()}</p>
+                  <p className="text-sm font-semibold">{fmtNGN(totalInvested)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground">Total Earnings</p>
+                  <p className={`text-sm font-semibold ${totalPnL >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}>
+                    {totalPnL >= 0 ? "+" : ""}{fmtNGN(totalPnL)}
+                    <span className="text-[10px] ml-1 font-normal">
+                      ({totalPnLPct >= 0 ? "+" : ""}{totalPnLPct.toFixed(2)}%)
+                    </span>
+                  </p>
                 </div>
                 <div>
                   <p className="text-[10px] text-muted-foreground">Holdings</p>
@@ -140,8 +158,10 @@ export default function Portfolio() {
           <section>
             <h2 className="font-semibold text-base mb-3">Breakdown</h2>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              {breakdown.map(({ name, count, total }) => {
+              {breakdown.map(({ name, count, invested, current }) => {
                 const { icon: Icon, color } = getCategoryIcon(name);
+                const pnl = current - invested;
+                const pnlPct = invested > 0 ? (pnl / invested) * 100 : 0;
                 return (
                   <Card key={name} className="border">
                     <CardContent className="p-4">
@@ -150,9 +170,14 @@ export default function Portfolio() {
                       </div>
                       <p className="text-xs font-semibold leading-tight">{name}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">{count} holding{count !== 1 ? "s" : ""}</p>
-                      {total > 0 && (
+                      {current > 0 && (
                         <p className="text-xs font-bold text-primary mt-1">
-                          ₦{total.toLocaleString()}
+                          {fmtNGN(current)}
+                        </p>
+                      )}
+                      {invested > 0 && (
+                        <p className={`text-[10px] mt-0.5 font-medium ${pnl >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}>
+                          {pnl >= 0 ? "+" : ""}{pnlPct.toFixed(1)}%
                         </p>
                       )}
                     </CardContent>
@@ -198,13 +223,25 @@ export default function Portfolio() {
               {investments.map((inv) => {
                 const { icon: Icon, color } = getCategoryIcon(inv.category);
                 const label = assetLabel(inv);
-                const amount = inv.amount !== null ? Number(inv.amount) : null;
+                const invested = inv.amount !== null ? Number(inv.amount) : null;
+                const current  = inv.final_amount != null ? Number(inv.final_amount) : invested;
+                const pnl      = invested !== null && current !== null ? current - invested : null;
+                const pnlPct   = pnl !== null && invested && invested > 0 ? (pnl / invested) * 100 : null;
+
                 return (
-                  <Card key={inv.id} className="border">
+                  <Card
+                    key={inv.id}
+                    className="border hover-elevate cursor-pointer"
+                    onClick={() => setLocation(`/portfolio/${inv.id}`)}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-11 h-11 rounded-xl ${color} flex items-center justify-center flex-shrink-0`}>
-                          <Icon className="w-5 h-5 text-white" />
+                        <div className={`w-11 h-11 rounded-xl ${logoUrl(inv.investment_icon) ? "bg-white border" : color} flex items-center justify-center flex-shrink-0 overflow-hidden`}>
+                          {logoUrl(inv.investment_icon) ? (
+                            <img src={logoUrl(inv.investment_icon)!} alt={label} className="w-full h-full object-contain p-1" />
+                          ) : (
+                            <Icon className="w-5 h-5 text-white" />
+                          )}
                         </div>
 
                         <div className="flex-1 min-w-0">
@@ -217,20 +254,30 @@ export default function Portfolio() {
                                 </p>
                               )}
                             </div>
-                            {amount !== null ? (
-                              <p className="text-sm font-bold flex-shrink-0 text-primary">
-                                ₦{amount.toLocaleString()}
-                              </p>
-                            ) : (
-                              <Badge variant="outline" className="text-[10px] flex-shrink-0">
-                                Pending
-                              </Badge>
-                            )}
+                            {/* Right: current value stacked over P&L */}
+                            <div className="text-right flex-shrink-0">
+                              {current !== null ? (
+                                <p className="text-sm font-bold text-primary">{fmtNGN(current)}</p>
+                              ) : (
+                                <Badge variant="outline" className="text-[10px]">Pending</Badge>
+                              )}
+                              {pnl !== null && (
+                                <p className={`text-[10px] font-semibold mt-0.5 ${pnl >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}>
+                                  {pnl >= 0 ? "+" : ""}{fmtNGN(pnl)}
+                                  {pnlPct !== null && ` (${pnlPct >= 0 ? "+" : ""}${pnlPct.toFixed(1)}%)`}
+                                </p>
+                              )}
+                            </div>
                           </div>
 
-                          <div className="flex items-center gap-3 mt-1.5">
+                          <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                            {invested !== null && (
+                              <span className="text-[10px] text-muted-foreground">
+                                Invested {fmtNGN(invested)}
+                              </span>
+                            )}
                             <span className="text-[10px] text-muted-foreground">
-                              {formatDate(inv.pub_date)} · {formatTime(inv.pub_date)}
+                              {formatDate(inv.pub_date)}
                             </span>
                             <Badge
                               variant={inv.status ? "default" : "secondary"}
@@ -240,6 +287,8 @@ export default function Portfolio() {
                             </Badge>
                           </div>
                         </div>
+
+                        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                       </div>
                     </CardContent>
                   </Card>
