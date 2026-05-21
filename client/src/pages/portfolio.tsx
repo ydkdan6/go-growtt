@@ -66,8 +66,12 @@ const assetLabel = (inv: PortfolioInvestment): string =>
 const fmtNGN = (n: number) =>
   `₦${n.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const logoUrl = (s: string | null | undefined): string | null =>
-  s && s.trim() !== "" ? s.trim() : null;
+const logoUrl = (s: string | null | undefined): string | null => {
+  if (!s || s.trim() === "") return null;
+  const url = s.trim();
+  if (url.startsWith("/")) return `https://api.growtt.com${url}`;
+  return url;
+};
 
 // ─── Treasury-bill maturity helpers ──────────────────────────────────────────
 // Extracts 91 | 182 | 364 from the asset name, returns null if not a T-bill.

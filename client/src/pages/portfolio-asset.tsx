@@ -63,8 +63,12 @@ const getCategoryIcon = (category: string | null): { icon: LucideIcon; color: st
 const fmtNGN = (n: number) =>
   `₦${n.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const logoUrl = (s: string | null | undefined): string | null =>
-  s && s.trim() !== "" ? s.trim() : null;
+const logoUrl = (s: string | null | undefined): string | null => {
+  if (!s || s.trim() === "") return null;
+  const url = s.trim();
+  if (url.startsWith("/")) return `https://api.growtt.com${url}`;
+  return url;
+};
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-NG", { day: "numeric", month: "long", year: "numeric" });

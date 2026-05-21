@@ -128,9 +128,18 @@ const getCategoryStyle = (
   return { icon: BarChart3, color: "bg-primary" };
 };
 
-// Returns a valid logo URL or null (treats empty string as absent)
-const logoUrl = (s: string | null | undefined): string | null =>
-  s && s.trim() !== "" ? s.trim() : null;
+// Returns an absolute logo URL or null.
+// Prepends the API base for relative paths so images load on any domain.
+const logoUrl = (s: string | null | undefined): string | null => {
+  if (!s || s.trim() === "") return null;
+  const url = s.trim();
+  if (url.startsWith("/")) return `https://api.growtt.com${url}`;
+  return url;
+};
+
+// Resolve logo from asset — prefers logo field, falls back to investmentIcon
+const assetLogo = (asset: InvestmentAsset): string | null =>
+  logoUrl(asset.logo) ?? logoUrl(asset.investmentIcon);
 
 // ─── Category-specific param rows ────────────────────────────────────────────
 const isValidNum = (v: number | null | undefined): v is number =>
@@ -658,10 +667,10 @@ export default function Invest() {
                         {/* Top row: icon + name + price + lock */}
                         <div className="flex items-start gap-3 mb-3">
                           <div
-                            className={`w-11 h-11 rounded-xl ${logoUrl(asset.logo) ? "bg-white border" : color} flex items-center justify-center relative flex-shrink-0 overflow-hidden`}
+                            className={`w-11 h-11 rounded-xl ${assetLogo(asset) ? "bg-white border" : color} flex items-center justify-center relative flex-shrink-0 overflow-hidden`}
                           >
-                            {logoUrl(asset.logo) ? (
-                              <img src={logoUrl(asset.logo)!} alt={displayName} className="w-full h-full object-contain p-1" />
+                            {assetLogo(asset) ? (
+                              <img src={assetLogo(asset)!} alt={displayName} className="w-full h-full object-contain p-1" />
                             ) : (
                               <Icon className="w-5 h-5 text-white" />
                             )}
@@ -875,10 +884,10 @@ export default function Invest() {
                     <SheetHeader className="p-5 pb-0">
                       <div className="flex items-center gap-3 mb-1">
                         <div
-                          className={`w-12 h-12 rounded-xl ${logoUrl(selectedAsset.logo) ? "bg-white border" : color} flex items-center justify-center flex-shrink-0 overflow-hidden`}
+                          className={`w-12 h-12 rounded-xl ${assetLogo(selectedAsset) ? "bg-white border" : color} flex items-center justify-center flex-shrink-0 overflow-hidden`}
                         >
-                          {logoUrl(selectedAsset.logo) ? (
-                            <img src={logoUrl(selectedAsset.logo)!} alt={displayName} className="w-full h-full object-contain p-1.5" />
+                          {assetLogo(selectedAsset) ? (
+                            <img src={assetLogo(selectedAsset)!} alt={displayName} className="w-full h-full object-contain p-1.5" />
                           ) : (
                             <Icon className="w-6 h-6 text-white" />
                           )}
@@ -1205,10 +1214,10 @@ export default function Invest() {
                     <div className="flex-1 overflow-y-auto p-5 space-y-5">
                       <div className="text-center py-2">
                         <div
-                          className={`w-16 h-16 rounded-2xl ${logoUrl(selectedAsset.logo) ? "bg-white border" : color} flex items-center justify-center mx-auto mb-4 overflow-hidden`}
+                          className={`w-16 h-16 rounded-2xl ${assetLogo(selectedAsset) ? "bg-white border" : color} flex items-center justify-center mx-auto mb-4 overflow-hidden`}
                         >
-                          {logoUrl(selectedAsset.logo) ? (
-                            <img src={logoUrl(selectedAsset.logo)!} alt={displayName} className="w-full h-full object-contain p-2" />
+                          {assetLogo(selectedAsset) ? (
+                            <img src={assetLogo(selectedAsset)!} alt={displayName} className="w-full h-full object-contain p-2" />
                           ) : (
                             <Icon className="w-8 h-8 text-white" />
                           )}
