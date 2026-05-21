@@ -235,7 +235,7 @@ export const updateInvestmentAssetApi = async (
 };
 
 export const sellInvestmentApi = async (payload: SellInvestmentPayload): Promise<void> => {
-  await apiClient.post("/custom-user/sell-investment/", payload);
+  await apiClient.put("/custom-user/sell-investment/", payload);
 };
 
 //  ─ Seeds & Balances                             ─
