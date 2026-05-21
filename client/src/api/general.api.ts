@@ -18,6 +18,7 @@ import type {
   ApiBlog,
   ApiInvestmentAsset,
   UpdateInvestmentAssetPayload,
+  SellInvestmentPayload,
   SeedBalancePayload,
   BuySeedResponse,
   ConvertSeedFundResponse,
@@ -205,7 +206,7 @@ export const getBlogByIdApi = async (id: string): Promise<ApiBlog> => {
   return data;
 };
 
-//  ─ Portfolio                                 
+//  ─ Portfolio
 export const getPortfolioApi = async (userId: string | number): Promise<Portfolio> => {
   const { data } = await apiClient.get<Portfolio>(`/custom-user/get-investments/${userId}/`);
   return data;
@@ -231,6 +232,10 @@ export const updateInvestmentAssetApi = async (
     payload
   );
   return data;
+};
+
+export const sellInvestmentApi = async (payload: SellInvestmentPayload): Promise<void> => {
+  await apiClient.post("/custom-user/sell-investment/", payload);
 };
 
 //  ─ Seeds & Balances                             ─

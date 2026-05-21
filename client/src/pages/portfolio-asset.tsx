@@ -1,7 +1,14 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "../components/ui/sheet";
 import {
   ArrowLeft,
   TrendingUp,
@@ -22,10 +29,14 @@ import {
   Calendar,
   Activity,
   Wallet,
+  Lock,
+  TrendingDown,
+  CheckCircle2,
   type LucideIcon,
 } from "lucide-react";
 import { usePortfolio } from "@/hooks/general/usePortfolio";
 import { useInvestmentAssets } from "@/hooks/general/useInvestmentsassets";
+import { useInvestmentSell } from "@/hooks/general/useInvestmentSell";
 import type { PortfolioInvestment } from "@/types/general.types";
 import { useTheme } from "@/components/theme-provider";
 import TradingViewWidget from "@/components/TradingViewWidget";
@@ -79,6 +90,18 @@ const getNseSymbol = (code: string | null | undefined): string | null => {
   return `NSENG:${clean.toUpperCase()}`;
 };
 
+// Treasury-bill maturity helpers
+const extractTbillTenure = (name: string | null): 91 | 182 | 364 | null => {
+  if (!name) return null;
+  if (/364/.test(name)) return 364;
+  if (/182/.test(name)) return 182;
+  if (/91/.test(name))  return 91;
+  return null;
+};
+
+const daysSince = (pubDate: string): number =>
+  Math.floor((Date.now() - new Date(pubDate).getTime()) / (1000 * 60 * 60 * 24));
+
 // Maps common crypto names to TradingView symbols
 const getCryptoSymbol = (company: string | null): string | null => {
   if (!company) return null;
@@ -93,9 +116,17 @@ const getCryptoSymbol = (company: string | null): string | null => {
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
+type SellStep = "confirm" | "success" | "error";
+
 export default function PortfolioAsset({ params }: { params?: { investmentId?: string } }) {
   const [location, setLocation] = useLocation();
   const { theme } = useTheme();
+
+  const [sellOpen, setSellOpen]   = useState(false);
+  const [sellStep, setSellStep]   = useState<SellStep>("confirm");
+  const [sellError, setSellError] = useState("");
+
+  const { mutate: sell, isPending: selling } = useInvestmentSell();
 
   // Extract investmentId from params or parse from path
   const investmentId = params?.investmentId ?? location.replace("/portfolio/", "");
@@ -194,10 +225,41 @@ export default function PortfolioAsset({ params }: { params?: { investmentId?: s
 
   // amount  = initial investment (what was paid in)
   // final_amount = current value  (invested + earnings)
-  const invested     = investment.amount != null      ? Number(investment.amount)       : null;
+  const invested     = investment.amount != null       ? Number(investment.amount)       : null;
   const currentValue = investment.final_amount != null ? Number(investment.final_amount) : invested;
   const earnings     = invested !== null && currentValue !== null ? currentValue - invested : null;
   const earningsPct  = earnings !== null && invested && invested > 0 ? (earnings / invested) * 100 : null;
+
+  // Treasury-bill maturity
+  const isTbill        = (investment.category ?? "").toLowerCase().includes("treasury");
+  const tbillTenure    = isTbill ? extractTbillTenure(investment.company) : null;
+  const daysElapsed    = daysSince(investment.pub_date);
+  const daysRemaining  = tbillTenure ? Math.max(0, tbillTenure - daysElapsed) : 0;
+  const isMature       = !isTbill || tbillTenure === null || daysElapsed >= tbillTenure;
+
+  const handleSell = () => {
+    if (!investment) return;
+    setSellStep("confirm");
+    setSellError("");
+    setSellOpen(true);
+  };
+
+  const confirmSell = () => {
+    sell(
+      {
+        investment,
+        earningsPct: earningsPct ?? 0,
+        rateUsed:    Number(investment.return_rate ?? 0),
+      },
+      {
+        onSuccess: () => setSellStep("success"),
+        onError: (err) => {
+          setSellError(typeof err === "string" ? err : "Something went wrong. Please try again.");
+          setSellStep("error");
+        },
+      }
+    );
+  };
 
   const pricePerUnit = investment.price_per_unit ? parseFloat(investment.price_per_unit) : null;
   const unitsHeld    = investment.units
@@ -390,15 +452,156 @@ export default function PortfolioAsset({ params }: { params?: { investmentId?: s
           </Card>
         )}
 
-        {/* Invest more CTA */}
-        <Button
-          className="w-full"
-          size="lg"
-          onClick={() => setLocation("/invest")}
-        >
-          Invest More
-        </Button>
+        {/* Action buttons */}
+        <div className="space-y-2 pb-2">
+          {/* Sell button */}
+          {isMature ? (
+            <Button
+              className="w-full"
+              variant="destructive"
+              size="lg"
+              onClick={handleSell}
+            >
+              <TrendingDown className="w-5 h-5 mr-2" />
+              Sell Investment
+            </Button>
+          ) : (
+            <Button
+              className="w-full opacity-60"
+              variant="outline"
+              size="lg"
+              disabled
+            >
+              <Lock className="w-4 h-4 mr-2" />
+              Sell available in {daysRemaining} day{daysRemaining !== 1 ? "s" : ""}
+              {tbillTenure && ` (${tbillTenure}-day T-Bill)`}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            className="w-full"
+            size="lg"
+            onClick={() => setLocation("/invest")}
+          >
+            Invest More
+          </Button>
+        </div>
       </main>
+
+      {/* ─── Sell Sheet ──────────────────────────────────────────────────── */}
+      <Sheet open={sellOpen} onOpenChange={(o) => { if (!o) setSellOpen(false); }}>
+        <SheetContent side="bottom" className="rounded-t-2xl p-0 max-h-[80vh] overflow-y-auto">
+
+          {sellStep === "confirm" && (
+            <div className="p-5 space-y-5">
+              <SheetHeader>
+                <SheetTitle className="text-left">Sell Investment</SheetTitle>
+              </SheetHeader>
+
+              <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-xl">
+                <div className={`w-12 h-12 rounded-xl ${logoUrl(investment.investment_icon) ? "bg-white border" : color} flex items-center justify-center flex-shrink-0 overflow-hidden`}>
+                  {logoUrl(investment.investment_icon) ? (
+                    <img src={logoUrl(investment.investment_icon)!} alt={label} className="w-full h-full object-contain p-1.5" />
+                  ) : (
+                    <Icon className="w-6 h-6 text-white" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate">{label}</p>
+                  <p className="text-xs text-muted-foreground">{investment.category}</p>
+                </div>
+              </div>
+
+              <Card className="border">
+                <CardContent className="p-4 space-y-3">
+                  {[
+                    ["Amount Invested", fmtNGN(invested ?? 0)],
+                    ["Current Value",   fmtNGN(currentValue ?? 0)],
+                  ].map(([lbl, val]) => (
+                    <div key={lbl} className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">{lbl}</span>
+                      <span className="text-sm font-semibold">{val}</span>
+                    </div>
+                  ))}
+                  {earnings !== null && (
+                    <div className="border-t pt-3 flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Earnings</span>
+                      <span className={`text-sm font-bold ${earnings >= 0 ? "text-green-600 dark:text-green-400" : "text-red-500"}`}>
+                        {earnings >= 0 ? "+" : ""}{fmtNGN(earnings)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="border-t pt-3 flex items-center justify-between">
+                    <span className="text-sm font-semibold">You will receive</span>
+                    <span className="text-lg font-bold text-primary">{fmtNGN(currentValue ?? 0)}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+                <CardContent className="p-3 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    Selling this asset will close your position. This action cannot be undone.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-2 pb-2">
+                <Button
+                  className="w-full"
+                  variant="destructive"
+                  size="lg"
+                  disabled={selling}
+                  onClick={confirmSell}
+                >
+                  {selling ? (
+                    <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Processing…</>
+                  ) : (
+                    <>Confirm Sell · {fmtNGN(currentValue ?? 0)}</>
+                  )}
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => setSellOpen(false)} disabled={selling}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {sellStep === "success" && (
+            <div className="p-8 flex flex-col items-center text-center gap-5">
+              <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold mb-1">Sale Successful!</h2>
+                <p className="text-muted-foreground text-sm">Your position in <span className="font-semibold">{label}</span> has been closed.</p>
+                <p className="text-2xl font-bold text-primary mt-3">{fmtNGN(currentValue ?? 0)}</p>
+                <p className="text-xs text-muted-foreground mt-1">credited to your wallet</p>
+              </div>
+              <Button className="w-full max-w-xs" onClick={() => { setSellOpen(false); setLocation("/portfolio"); }}>
+                Back to Portfolio
+              </Button>
+            </div>
+          )}
+
+          {sellStep === "error" && (
+            <div className="p-8 flex flex-col items-center text-center gap-5">
+              <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
+                <AlertCircle className="w-10 h-10 text-destructive" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold mb-2">Sale Failed</h2>
+                <p className="text-muted-foreground text-sm">{sellError || "Something went wrong. Please try again."}</p>
+              </div>
+              <div className="w-full max-w-xs space-y-2">
+                <Button className="w-full" onClick={() => setSellStep("confirm")}>Try Again</Button>
+                <Button variant="outline" className="w-full" onClick={() => setSellOpen(false)}>Close</Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

@@ -460,7 +460,19 @@ export interface UpdateInvestmentAssetPayload {
   pub_date?:        string;
 }
 
-//  ─ Seed & Balance Payloads                          
+//  ─ Sell Investment Payload — POST /custom-user/sell-investment/
+
+export interface SellInvestmentPayload {
+  custom_user_id:      string;
+  investment_asset_id: string;
+  initial_amount:      number;
+  last_change_percent: number;
+  last_rate_used:      number;
+  status:              boolean;
+  pub_date:            string;
+}
+
+//  ─ Seed & Balance Payloads
 
 /** Shared payload shape used by buy-seed, convert-seed-fund,
  *  fund-demo-balance, and fund-seed-balance endpoints. */
